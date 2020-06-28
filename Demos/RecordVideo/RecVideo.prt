@@ -1,0 +1,18 @@
+; FASM Editor
+
+include "Main.asm"
+
+if 2 * 2 = 5
+[options]
+  countAsm=1
+  countInc=6
+[asm]
+  asm1="Main.asm"
+[inc]
+  inc1="vfw32.inc"
+  inc2="API_winmm.inc"
+  inc3="API_msvfw32.inc"
+  inc4="API_avifil32.inc"
+  inc5="API_avicap32.inc"
+  inc6="Data.inc"
+end if

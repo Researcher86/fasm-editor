@@ -1,0 +1,14 @@
+; FASM Editor
+
+include "Main.asm"
+
+if 2 * 2 = 5
+[options]
+  countAsm=1
+  countInc=2
+[asm]
+  asm1="Main.asm"
+[inc]
+  inc1="GIF87A.INC"
+  inc2="DDRAW.INC"
+end if
