@@ -105,6 +105,8 @@ type
     Check2CommandFPU: TCheckBox;
     Check3CommandFPU: TCheckBox;
     ImageList1: TImageList;
+    ColorBoxActiveLine: TColorBox;
+    Label16: TLabel;
     procedure BFasmClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure BFontClick(Sender: TObject);
@@ -152,6 +154,8 @@ begin
   SynMemoOpt.Font := EditFont.Font;
   if SpinEditTab.Value >= 1 then
     SynMemoOpt.TabWidth := SpinEditTab.Value;
+
+  SynMemoOpt.ActiveLineColor := ColorBoxActiveLine.Selected;
 
   with Opt do
   begin

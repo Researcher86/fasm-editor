@@ -92,6 +92,7 @@ procedure TMyTabSheet.UpdateOptions;
 begin
   fSynMemo.Highlighter := FormOptions.MySynAsmSyn;
   fSynMemo.Color := FormOptions.ColorEdit.Selected;
+  fSynMemo.ActiveLineColor := FormOptions.ColorBoxActiveLine.Selected;
   fSynMemo.Font := FormOptions.SynMemoOpt.Font;
 end;
 
@@ -232,7 +233,8 @@ begin
     Parent := Self;
     Align := alClient;
     BorderStyle := bsNone;
-    BookMarkOptions.BookmarkImages := FormEditor.ImBookMark;
+    ActiveLineColor := FormOptions.SynMemoOpt.ActiveLineColor;
+    BookMarkOptions.BookmarkImages := BookmarkImages;
     OnStatusChange := StatusChange;
     OnCommandProcessed := SynMemoCommandProcessed;
     OnKeyUp := SynMemoKeyUp;

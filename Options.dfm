@@ -189,6 +189,7 @@ object FormOptions: TFormOptions
         TabOrder = 0
         object TabSheet1: TTabSheet
           Caption = #1056#1077#1076#1072#1082#1090#1086#1088
+          ExplicitTop = 26
           object Label2: TLabel
             Left = 9
             Top = 12
@@ -209,6 +210,13 @@ object FormOptions: TFormOptions
             Width = 58
             Height = 13
             Caption = #1058#1072#1073#1091#1083#1103#1094#1080#1103':'
+          end
+          object Label16: TLabel
+            Left = 142
+            Top = 104
+            Width = 119
+            Height = 13
+            Caption = #1062#1074#1077#1090' '#1072#1082#1090#1080#1074#1085#1086#1081' '#1089#1090#1088#1086#1082#1080':'
           end
           object ColorEdit: TColorBox
             Left = 80
@@ -238,7 +246,7 @@ object FormOptions: TFormOptions
             OnClick = BFontClick
           end
           object SynMemoOpt: TSynMemo
-            Left = 273
+            Left = 267
             Top = 83
             Width = 141
             Height = 52
@@ -302,6 +310,16 @@ object FormOptions: TFormOptions
               Text = 'Courier New, 10'
               ExplicitHeight = 24
             end
+          end
+          object ColorBoxActiveLine: TColorBox
+            Left = 270
+            Top = 101
+            Width = 144
+            Height = 22
+            DefaultColorColor = clInfoBk
+            NoneColorColor = clNone
+            Selected = clInfoBk
+            TabOrder = 5
           end
         end
         object TabSheet2: TTabSheet
@@ -984,7 +1002,7 @@ object FormOptions: TFormOptions
     Left = 60
     Top = 185
     Bitmap = {
-      494C010102000800040010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C010102000800080010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000003738384E474F4F8421212127000000001818181C010101020000
