@@ -194,7 +194,7 @@ begin
     Height := 15;
     Flat := True;
     Top := 3;
-    Hint := 'Закрыть';
+    Hint := 'пїЅпїЅпїЅпїЅпїЅпїЅпїЅ';
     ShowHint := True;
   end;
 
@@ -208,7 +208,7 @@ begin
     Height := 22;
     Flat := True;
     Left := fComboBoxFind.Width + 10;
-    Hint := 'Следующее';
+    Hint := 'пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ';
     ShowHint := True;
   end;
 
@@ -222,7 +222,7 @@ begin
     Height := 22;
     Flat := True;
     Left := fBNext.Left + 31;
-    Hint := 'Предыдущее';
+    Hint := 'пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ';
     ShowHint := True;
   end;
 
@@ -301,8 +301,8 @@ begin
   try
     fSynMemo.Lines.SaveToFile(fFile);
   except
-    MessageBoxA(Handle, PAnsiChar('Произошла ошибка при записи файла. ' +
-      fFile), 'Ошибка!', MB_ICONERROR or MB_OK);
+    MessageBoxA(Handle, PAnsiChar('пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ. ' +
+      fFile), 'пїЅпїЅпїЅпїЅпїЅпїЅ!', MB_ICONERROR or MB_OK);
   end;
   fSynMemo.Modified := False;
 end;
@@ -360,7 +360,7 @@ begin
   if Changes * [scCaretX] <> [] then
   begin
     fSynMemo.ActiveLineColor := clNone;
-    FormEditor.StatusBar1.Panels[1].Text := 'Столбец: ' +
+    FormEditor.StatusBar1.Panels[1].Text := 'пїЅпїЅпїЅпїЅпїЅпїЅпїЅ: ' +
       IntToStr(fSynMemo.CaretX);
   end;
 
@@ -371,7 +371,7 @@ begin
     fSynMemo.InvalidateGutterLine(fActiveCaretY);
 
     fSynMemo.ActiveLineColor := clNone;
-    FormEditor.StatusBar1.Panels[0].Text := 'Строка: ' +
+    FormEditor.StatusBar1.Panels[0].Text := 'пїЅпїЅпїЅпїЅпїЅпїЅ: ' +
       IntToStr(fSynMemo.CaretY);
   end;
 
@@ -394,21 +394,18 @@ var
 begin
   fSynMemo.ActiveLineColor := clNone;
   if fSynMemo.InsertMode then
-    FormEditor.StatusBar1.Panels[2].Text := 'Вставка'
+    FormEditor.StatusBar1.Panels[2].Text := 'пїЅпїЅпїЅпїЅпїЅпїЅпїЅ'
   else
-    FormEditor.StatusBar1.Panels[2].Text := 'Перезаписать';
+    FormEditor.StatusBar1.Panels[2].Text := 'пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ';
 end;
 
 procedure TMyTabSheet.SynMemoDblClick(Sender: TObject);
 begin
-  fSelectWord := fSynMemo.WordAtCursor;
+  fSelectWord := fSynMemo.SelText;
   if fSelectWord <> '' then
   begin
     TMySynAsmSyn(fSynMemo.Highlighter).SelectWord := fSelectWord;
-    // fSynMemo.BeginUpdate;
-    // fSynMemo.Repaint;
     fSynMemo.Invalidate;
-    // fSynMemo.EndUpdate;
   end;
 end;
 
