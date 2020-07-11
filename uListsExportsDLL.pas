@@ -120,7 +120,7 @@ var
 
 procedure TFormListsExportsDLL.PathEditChange(Sender: TObject);
 begin
-  StatusBar.Panels[0].Text := 'Файл: ' + ExtractFileName(PathEdit.Text);
+  StatusBar.Panels[0].Text := 'Р¤Р°Р№Р»: ' + ExtractFileName(PathEdit.Text);
 end;
 
 procedure TFormListsExportsDLL.FormShow(Sender: TObject);
@@ -154,7 +154,7 @@ begin
   F.Read(IMAGE_DOS_HEADER, SizeOf(IMAGE_DOS_HEADER));
   if IMAGE_DOS_HEADER.e_magic <> IMAGE_DOS_SIGNATURE then
   begin
-    SynMemoExp.Lines.Add('; Косяк!');
+    SynMemoExp.Lines.Add('; РљРѕСЃСЏРє!');
     goto Error;
   end;
 
@@ -162,7 +162,7 @@ begin
   F.Read(IMAGE_NT_HEADERS, SizeOf(IMAGE_NT_HEADERS));
   if IMAGE_NT_HEADERS.Signature <> IMAGE_NT_SIGNATURE then
   begin
-    SynMemoExp.Lines.Add('; Косяк!');
+    SynMemoExp.Lines.Add('; РљРѕСЃСЏРє!');
     goto Error;
   end;
 
@@ -174,7 +174,7 @@ begin
     Dec(NumberOfSections);
     if NumberOfSections < 0 then
     begin
-      SynMemoExp.Lines.Add('; Косяк!');
+      SynMemoExp.Lines.Add('; РљРѕСЃСЏРє!');
       goto Error;
     end;
 
@@ -213,13 +213,13 @@ begin
   Inc(Position, IMAGE_SECTION_HEADER.PointerToRawData);
 
   NumberOfNames := IMAGE_EXPORT_DIRECTORY.NumberOfNames;
-  StatusBar.Panels[1].Text := 'Кол. функций: ' + IntToStr(NumberOfNames);
+  StatusBar.Panels[1].Text := 'РљРѕР». С„СѓРЅРєС†РёР№: ' + IntToStr(NumberOfNames);
 
   repeat
     Dec(NumberOfNames);
     if NumberOfNames < 0 then
     begin
-      SynMemoExp.Lines.Add('; Косяк!');
+      SynMemoExp.Lines.Add('; РљРѕСЃСЏРє!');
       goto Error;
     end;
 
@@ -275,7 +275,7 @@ begin
   F.Read(IMAGE_DOS_HEADER, SizeOf(IMAGE_DOS_HEADER));
   if IMAGE_DOS_HEADER.e_magic <> IMAGE_DOS_SIGNATURE then
   begin
-    SynMemoExp.Lines.Add('; Косяк!');
+    SynMemoExp.Lines.Add('; РљРѕСЃСЏРє!');
     goto Error;
   end;
 
@@ -283,7 +283,7 @@ begin
   F.Read(IMAGE_NT_HEADERS2, SizeOf(IMAGE_NT_HEADERS2));
   if IMAGE_NT_HEADERS2.Signature <> IMAGE_NT_SIGNATURE then
   begin
-    SynMemoExp.Lines.Add('; Косяк!');
+    SynMemoExp.Lines.Add('; РљРѕСЃСЏРє!');
     goto Error;
   end;
 
@@ -294,7 +294,7 @@ begin
     Dec(NumberOfSections);
     if NumberOfSections < 0 then
     begin
-      SynMemoExp.Lines.Add('; Косяк!');
+      SynMemoExp.Lines.Add('; РљРѕСЃСЏРє!');
       goto Error;
     end;
 
@@ -335,13 +335,13 @@ begin
   NumberOfNames := IMAGE_EXPORT_DIRECTORY.NumberOfNames;
 
   NumberOfNames := IMAGE_EXPORT_DIRECTORY.NumberOfNames;
-  StatusBar.Panels[1].Text := 'Кол. функций: ' + IntToStr(NumberOfNames);
+  StatusBar.Panels[1].Text := 'РљРѕР». С„СѓРЅРєС†РёР№: ' + IntToStr(NumberOfNames);
 
   repeat
     Dec(NumberOfNames);
     if NumberOfNames < 0 then
     begin
-      SynMemoExp.Lines.Add('; Косяк!');
+      SynMemoExp.Lines.Add('; РљРѕСЃСЏРє!');
       goto Error;
     end;
 
@@ -413,7 +413,7 @@ var
 begin
   if not FileExists(PathEdit.Text) then
   begin
-    MessageBoxA(Handle, 'Файл не найден!', 'Ошибка!', MB_ICONERROR or MB_OK);
+    MessageBoxA(Handle, 'Р¤Р°Р№Р» РЅРµ РЅР°Р№РґРµРЅ!', 'РћС€РёР±РєР°!', MB_ICONERROR or MB_OK);
     Exit;
   end;
 
@@ -434,7 +434,7 @@ begin
   F.Read(IMAGE_DOS_HEADER, SizeOf(IMAGE_DOS_HEADER));
   if IMAGE_DOS_HEADER.e_magic <> IMAGE_DOS_SIGNATURE then
   begin
-    SynMemoExp.Lines.Add('; Косяк!');
+    SynMemoExp.Lines.Add('; РљРѕСЃСЏРє!');
     goto Error;
   end;
 
@@ -442,7 +442,7 @@ begin
   F.Read(IMAGE_NT_HEADERS2, SizeOf(IMAGE_NT_HEADERS2));
   if IMAGE_NT_HEADERS2.Signature <> IMAGE_NT_SIGNATURE then
   begin
-    SynMemoExp.Lines.Add('; Косяк!');
+    SynMemoExp.Lines.Add('; РљРѕСЃСЏРє!');
     goto Error;
   end;
 
@@ -452,7 +452,7 @@ begin
         FreeAndNil(F);
         SynMemoExp.Lines.Add('; PE32');
         SynMemoExp.Lines.Add('');
-        StatusBar.Panels[3].Text := 'Тип: PE32';
+        StatusBar.Panels[3].Text := 'РўРёРї: PE32';
         GetListsExport32;
       end;
 
@@ -461,12 +461,12 @@ begin
         FreeAndNil(F);
         SynMemoExp.Lines.Add('; PE64');
         SynMemoExp.Lines.Add('');
-        StatusBar.Panels[3].Text := 'Тип: PE64';
+        StatusBar.Panels[3].Text := 'РўРёРї: PE64';
         GetListsExport64;
       end;
 
   else
-    SynMemoExp.Lines.Add('; Косяк!');
+    SynMemoExp.Lines.Add('; РљРѕСЃСЏРє!');
   end;
 
   if I > 0 then
@@ -496,8 +496,8 @@ begin
   SynMemoExp.Lines.Clear;
   with StatusBar do
   begin
-    Panels[1].Text := 'Кол. функций:';
-    Panels[3].Text := 'Тип:';
+    Panels[1].Text := 'РљРѕР». С„СѓРЅРєС†РёР№:';
+    Panels[3].Text := 'РўРёРї:';
   end;
 end;
 

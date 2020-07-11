@@ -20,6 +20,7 @@ const
   SYN_ATTR_REGISTR = 9;
   SYN_ATTR_RAZ = 10;
   SYN_ATTR_SELWORD = 11;
+  SYN_ATTR_UNDERSCOREWORD = 12;
 
   SYNS_AttrDir = 'Dir';
   SYNS_FriendlyAttrDir = 'Dir';
@@ -106,7 +107,7 @@ const
 
 type
   TtkTokenKind = (tkComment, tkIdentifier, tkOper, tkOperFPU, tkNull, tkNumber,
-    tkSpace, tkString, tkSymbol, tkDir, tkJump, tkReg, tkRaz, tkSelWord,
+    tkSpace, tkString, tkSymbol, tkDir, tkJump, tkReg, tkRaz, tkSelWord, tkUnderscoreWord,
     tkUnknown);
 
   TOpt = packed record
@@ -174,7 +175,7 @@ type
 type
   TMySynAsmSyn = class(TSynCustomHighlighter)
   private
-    fTokenID: TtkTokenKind;
+    fTokenId: TtkTokenKind;
     fCommentAttri: TSynHighlighterAttributes;
     fIdentifierAttri: TSynHighlighterAttributes;
     fOperAttri: TSynHighlighterAttributes;
@@ -189,9 +190,11 @@ type
     fRegAttri: TSynHighlighterAttributes;
     fRazAttri: TSynHighlighterAttributes;
     fSelectWordAttri: TSynHighlighterAttributes;
+    fUnderscoreWordAttri: TSynHighlighterAttributes;
 
     fKeywordsOper: TSynHashEntryList;
     fSelectWord: string;
+    fUnderscoreWord: string;
     function HashKey(Str: PWideChar): Cardinal;
     procedure CommentProc;
     procedure CRProc;
@@ -210,6 +213,7 @@ type
     procedure DoAddKeywordOper(AKeyword: UnicodeString; AKind: integer);
     function IdentKind(MayBe: PWideChar): TtkTokenKind;
     procedure SetSelectWord(const Value: string);
+    procedure SetUnderscoreWord(const Value: string);
   protected
     function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
@@ -217,42 +221,30 @@ type
     class function GetLanguageName: string; override;
     class function GetFriendlyLanguageName: UnicodeString; override;
   public
-    constructor Create(const Comand, ComandFPU, Dir, Jump, Regist,
-      Raz: UnicodeString; var Opt: TOpt);
+    constructor Create(const Comand, ComandFPU, Dir, Jump, Regist, Raz: UnicodeString; var Opt: TOpt);
     destructor Destroy; override;
-    function GetDefaultAttribute(Index: integer)
-      : TSynHighlighterAttributes; override;
+    function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes; override;
     function GetEol: Boolean; override;
     function GetTokenID: TtkTokenKind;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
     procedure Next; override;
+    function equalsUnderscoreWord(const Value: string): Boolean;
   published
-    property CommentAttri: TSynHighlighterAttributes read fCommentAttri
-      write fCommentAttri;
-    property IdentifierAttri: TSynHighlighterAttributes read fIdentifierAttri
-      write fIdentifierAttri;
-    property OperAttri: TSynHighlighterAttributes read fOperAttri
-      write fOperAttri;
-
-    property OperAttriFPU: TSynHighlighterAttributes read fOperAttriFPU
-      write fOperAttriFPU;
-
-    property NumberAttri: TSynHighlighterAttributes read fNumberAttri
-      write fNumberAttri;
-    property SpaceAttri: TSynHighlighterAttributes read fSpaceAttri
-      write fSpaceAttri;
-    property StringAttri: TSynHighlighterAttributes read fStringAttri
-      write fStringAttri;
-    property SymbolAttri: TSynHighlighterAttributes read fSymbolAttri
-      write fSymbolAttri;
-
+    property CommentAttri: TSynHighlighterAttributes read fCommentAttri write fCommentAttri;
+    property IdentifierAttri: TSynHighlighterAttributes read fIdentifierAttri write fIdentifierAttri;
+    property OperAttri: TSynHighlighterAttributes read fOperAttri write fOperAttri;
+    property OperAttriFPU: TSynHighlighterAttributes read fOperAttriFPU write fOperAttriFPU;
+    property NumberAttri: TSynHighlighterAttributes read fNumberAttri write fNumberAttri;
+    property SpaceAttri: TSynHighlighterAttributes read fSpaceAttri write fSpaceAttri;
+    property StringAttri: TSynHighlighterAttributes read fStringAttri write fStringAttri;
+    property SymbolAttri: TSynHighlighterAttributes read fSymbolAttri write fSymbolAttri;
     property DirAttri: TSynHighlighterAttributes read fDirAttri write fDirAttri;
-    property JumpAttri: TSynHighlighterAttributes read fJumpAttri
-      write fJumpAttri;
+    property JumpAttri: TSynHighlighterAttributes read fJumpAttri write fJumpAttri;
     property RegAttri: TSynHighlighterAttributes read fRegAttri write fRegAttri;
     property RazAttri: TSynHighlighterAttributes read fRazAttri write fRazAttri;
     property SelectWord: string read fSelectWord write SetSelectWord;
+    property UnderscoreWord: string read fUnderscoreWord write SetUnderscoreWord;
   end;
 
 var
@@ -320,70 +312,57 @@ begin
   fCaseSensitive := False;
   fKeywordsOper := TSynHashEntryList.Create;
 
-  if (Comand = '') or (ComandFPU = '') or (Dir = '') or (Jump = '') or
-    (Regist = '') or (Raz = '') then
+  if (Comand = '') or (ComandFPU = '') or (Dir = '') or (Jump = '') or (Regist = '') or (Raz = '') then
   begin
-    fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment,
-      SYNS_FriendlyAttrComment);
+    fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
     fCommentAttri.Style := [fsItalic];
     fCommentAttri.Foreground := clGreen;
     AddAttribute(fCommentAttri);
 
-    fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier,
-      SYNS_FriendlyAttrIdentifier);
+    fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
     AddAttribute(fIdentifierAttri);
 
-    fOperAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord,
-      SYNS_FriendlyAttrReservedWord);
+    fOperAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
     fOperAttri.Style := [fsBold];
     AddAttribute(fOperAttri);
     /// ////////////////////////
-    fOperAttriFPU := TSynHighlighterAttributes.Create(SYNS_AttrOperFPU,
-      SYNS_FriendlyAttrOperFPU);
+    fOperAttriFPU := TSynHighlighterAttributes.Create(SYNS_AttrOperFPU, SYNS_FriendlyAttrOperFPU);
     fOperAttriFPU.Style := [fsBold];
     fOperAttriFPU.Foreground := clTeal;
     AddAttribute(fOperAttriFPU);
     /// ///////////////////////////////////
 
-    fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber,
-      SYNS_FriendlyAttrNumber);
+    fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
     fNumberAttri.Foreground := clBlue;
     AddAttribute(fNumberAttri);
 
-    fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace,
-      SYNS_FriendlyAttrSpace);
+    fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
     AddAttribute(fSpaceAttri);
 
-    fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString,
-      SYNS_FriendlyAttrString);
+    fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
     fStringAttri.Foreground := clBlue;
     AddAttribute(fStringAttri);
 
-    fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol,
-      SYNS_FriendlyAttrSymbol);
+    fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
     AddAttribute(fSymbolAttri);
 
     // ================================================================
-    fDirAttri := TSynHighlighterAttributes.Create(SYNS_AttrDir,
-      SYNS_FriendlyAttrDir);
+    fDirAttri := TSynHighlighterAttributes.Create(SYNS_AttrDir, SYNS_FriendlyAttrDir);
     fDirAttri.Style := [fsBold];
     fDirAttri.Foreground := clNavy;
     AddAttribute(fDirAttri);
 
-    fJumpAttri := TSynHighlighterAttributes.Create(SYNS_AttrJump,
-      SYNS_FriendlyAttrJump);
+    fJumpAttri := TSynHighlighterAttributes.Create(SYNS_AttrJump, SYNS_FriendlyAttrJump);
     fJumpAttri.Style := [fsBold];
     fJumpAttri.Foreground := clRed;
     AddAttribute(fJumpAttri);
 
-    fRegAttri := TSynHighlighterAttributes.Create(SYNS_AttrRegist,
-      SYNS_FriendlyAttrRegist);
+    fRegAttri := TSynHighlighterAttributes.Create(SYNS_AttrRegist, SYNS_FriendlyAttrRegist);
     fRegAttri.Style := [fsBold];
     fRegAttri.Foreground := clHotLight;
     AddAttribute(fRegAttri);
 
-    fRazAttri := TSynHighlighterAttributes.Create(SYNS_AttrRaz,
-      SYNS_FriendlyAttrRaz);
+    fRazAttri := TSynHighlighterAttributes.Create(SYNS_AttrRaz, SYNS_FriendlyAttrRaz);
     fRazAttri.Style := [fsBold];
     fRazAttri.Foreground := clRed;
     AddAttribute(fRazAttri);
@@ -391,80 +370,65 @@ begin
     // ================================================================
 
     EnumerateKeywords(Ord(tkOper), Mnemonics, IsIdentChar, DoAddKeywordOper);
-    EnumerateKeywords(Ord(tkOperFPU), MnemonicsFPU, IsIdentChar,
-      DoAddKeywordOper);
+    EnumerateKeywords(Ord(tkOperFPU), MnemonicsFPU, IsIdentChar, DoAddKeywordOper);
     EnumerateKeywords(Ord(tkDir), MnemonicsDir, IsIdentChar, DoAddKeywordOper);
-    EnumerateKeywords(Ord(tkJump), MnemonicsJump, IsIdentChar,
-      DoAddKeywordOper);
-    EnumerateKeywords(Ord(tkReg), MnemonicsRegist, IsIdentChar,
-      DoAddKeywordOper);
+    EnumerateKeywords(Ord(tkJump), MnemonicsJump, IsIdentChar, DoAddKeywordOper);
+    EnumerateKeywords(Ord(tkReg), MnemonicsRegist, IsIdentChar, DoAddKeywordOper);
     EnumerateKeywords(Ord(tkRaz), MnemonicsRaz, IsIdentChar, DoAddKeywordOper);
   end
   else
   begin
-    fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment,
-      SYNS_FriendlyAttrComment);
+    fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
     fCommentAttri.Style := Opt.CommentAttri.Style;
     fCommentAttri.Foreground := Opt.CommentAttri.Foreground;
     AddAttribute(fCommentAttri);
 
-    fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier,
-      SYNS_FriendlyAttrIdentifier);
+    fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
     AddAttribute(fIdentifierAttri);
 
-    fOperAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord,
-      SYNS_FriendlyAttrReservedWord);
+    fOperAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
     fOperAttri.Style := Opt.OperAttri.Style;
     fOperAttri.Foreground := Opt.OperAttri.Foreground;
     AddAttribute(fOperAttri);
     /// /////////////////////
-    fOperAttriFPU := TSynHighlighterAttributes.Create(SYNS_AttrOperFPU,
-      SYNS_FriendlyAttrOperFPU);
+    fOperAttriFPU := TSynHighlighterAttributes.Create(SYNS_AttrOperFPU, SYNS_FriendlyAttrOperFPU);
     fOperAttriFPU.Style := Opt.OperAttriFPU.Style;
     fOperAttriFPU.Foreground := Opt.OperAttriFPU.Foreground;
     AddAttribute(fOperAttriFPU);
     /// /////////////////////
-    fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber,
-      SYNS_FriendlyAttrNumber);
+    fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
     fNumberAttri.Style := Opt.NumberAttri.Style;
     fNumberAttri.Foreground := Opt.NumberAttri.Foreground;
     AddAttribute(fNumberAttri);
 
-    fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace,
-      SYNS_FriendlyAttrSpace);
+    fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
     AddAttribute(fSpaceAttri);
 
-    fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString,
-      SYNS_FriendlyAttrString);
+    fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
     fStringAttri.Style := Opt.StringAttri.Style;
     fStringAttri.Foreground := Opt.StringAttri.Foreground;
     AddAttribute(fStringAttri);
 
-    fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol,
-      SYNS_FriendlyAttrSymbol);
+    fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
     AddAttribute(fSymbolAttri);
 
     // ================================================================
-    fDirAttri := TSynHighlighterAttributes.Create(SYNS_AttrDir,
-      SYNS_FriendlyAttrDir);
+    fDirAttri := TSynHighlighterAttributes.Create(SYNS_AttrDir, SYNS_FriendlyAttrDir);
     fDirAttri.Style := Opt.DirAttri.Style;
     fDirAttri.Foreground := Opt.DirAttri.Foreground;
     AddAttribute(fDirAttri);
 
-    fJumpAttri := TSynHighlighterAttributes.Create(SYNS_AttrJump,
-      SYNS_FriendlyAttrJump);
+    fJumpAttri := TSynHighlighterAttributes.Create(SYNS_AttrJump, SYNS_FriendlyAttrJump);
     fJumpAttri.Style := Opt.JumpAttri.Style;
     fJumpAttri.Foreground := Opt.JumpAttri.Foreground;
     AddAttribute(fJumpAttri);
 
-    fRegAttri := TSynHighlighterAttributes.Create(SYNS_AttrRegist,
-      SYNS_FriendlyAttrRegist);
+    fRegAttri := TSynHighlighterAttributes.Create(SYNS_AttrRegist, SYNS_FriendlyAttrRegist);
     fRegAttri.Style := Opt.RegAttri.Style;;
     fRegAttri.Foreground := Opt.RegAttri.Foreground;;
     AddAttribute(fRegAttri);
 
-    fRazAttri := TSynHighlighterAttributes.Create(SYNS_AttrRaz,
-      SYNS_FriendlyAttrRaz);
+    fRazAttri := TSynHighlighterAttributes.Create(SYNS_AttrRaz, SYNS_FriendlyAttrRaz);
     fRazAttri.Style := Opt.RazAttri.Style;;
     fRazAttri.Foreground := Opt.RazAttri.Foreground;;
     AddAttribute(fRazAttri);
@@ -479,11 +443,16 @@ begin
     EnumerateKeywords(Ord(tkRaz), Raz, IsIdentChar, DoAddKeywordOper);
   end;
 
-  fSelectWordAttri := TSynHighlighterAttributes.Create('SelectWord',
-    'SelectWord');
+  fSelectWordAttri := TSynHighlighterAttributes.Create('SelectWord', 'SelectWord');
   fSelectWordAttri.Background := $9BFF9B;
   AddAttribute(fSelectWordAttri);
   EnumerateKeywords(Ord(tkSelWord), '', IsIdentChar, DoAddKeywordOper);
+
+  fUnderscoreWordAttri := TSynHighlighterAttributes.Create('UnderscoreWord', 'UnderscoreWord');
+  fUnderscoreWordAttri.Style := [fsUnderline];
+  fUnderscoreWordAttri.Foreground := clBlue;
+  AddAttribute(fUnderscoreWordAttri);
+  EnumerateKeywords(Ord(tkUnderscoreWord), '', IsIdentChar, DoAddKeywordOper);
 
   SetAttributesOnChange(DefHighlightChange);
   fDefaultFilter := SYNS_FilterX86Assembly;
@@ -498,7 +467,7 @@ end;
 procedure TMySynAsmSyn.CommentProc;
 begin
   S := '';
-  fTokenID := tkComment;
+  fTokenId := tkComment;
   repeat
     inc(Run);
   until IsLineEnd(Run);
@@ -506,7 +475,7 @@ end;
 
 procedure TMySynAsmSyn.CRProc;
 begin
-  fTokenID := tkSpace;
+  fTokenId := tkSpace;
   inc(Run);
   if fLine[Run] = #10 then
     inc(Run);
@@ -515,7 +484,7 @@ end;
 procedure TMySynAsmSyn.GreaterProc;
 begin
   inc(Run);
-  fTokenID := tkSymbol;
+  fTokenId := tkSymbol;
   if fLine[Run] = '=' then
     inc(Run);
 end;
@@ -523,54 +492,25 @@ end;
 procedure TMySynAsmSyn.IdentProc;
 begin
   S := '';
-  fTokenID := IdentKind((fLine + Run));
+  fTokenId := IdentKind((fLine + Run));
   S := Copy(fLine, Run + 1, fStringLen);
 
   if (fSelectWord <> '') and (S = fSelectWord) then
-    case fTokenID of
-      tkOper:
-        begin
-          fSelectWordAttri.Style := fOperAttri.Style;
-          fSelectWordAttri.Foreground := fOperAttri.Foreground;
-          fTokenID := tkSelWord;
-        end;
-      tkOperFPU:
-        begin
-          fSelectWordAttri.Style := fOperAttriFPU.Style;
-          fSelectWordAttri.Foreground := fOperAttriFPU.Foreground;
-          fTokenID := tkSelWord;
-        end;
-      tkDir:
-        begin
-          fSelectWordAttri.Style := fDirAttri.Style;
-          fSelectWordAttri.Foreground := fDirAttri.Foreground;
-          fTokenID := tkSelWord;
-        end;
-      tkJump:
-        begin
-          fSelectWordAttri.Style := fJumpAttri.Style;
-          fSelectWordAttri.Foreground := fJumpAttri.Foreground;
-          fTokenID := tkSelWord;
-        end;
-      tkReg:
-        begin
-          fSelectWordAttri.Style := fRegAttri.Style;
-          fSelectWordAttri.Foreground := fRegAttri.Foreground;
-          fTokenID := tkSelWord;
-        end;
-      tkRaz:
-        begin
-          fSelectWordAttri.Style := fRazAttri.Style;
-          fSelectWordAttri.Foreground := fRazAttri.Foreground;
-          fTokenID := tkSelWord;
-        end;
+  begin
+    fSelectWordAttri.Style := GetTokenAttribute.Style;
+    fSelectWordAttri.Foreground := GetTokenAttribute.Foreground;
+    fTokenId := tkSelWord;
+  end;
+
+  if (fUnderscoreWord <> '') and (S = fUnderscoreWord) then
+  begin
+    case fTokenId of
       tkIdentifier:
         begin
-          fSelectWordAttri.Style := fIdentifierAttri.Style;
-          fSelectWordAttri.Foreground := fIdentifierAttri.Foreground;
-          fTokenID := tkSelWord;
+          fTokenId := tkUnderscoreWord;
         end;
     end;
+  end;
 
   inc(Run, fStringLen);
 
@@ -580,21 +520,21 @@ end;
 
 procedure TMySynAsmSyn.LFProc;
 begin
-  fTokenID := tkSpace;
+  fTokenId := tkSpace;
   inc(Run);
 end;
 
 procedure TMySynAsmSyn.LowerProc;
 begin
   inc(Run);
-  fTokenID := tkSymbol;
+  fTokenId := tkSymbol;
   if CharInSet(fLine[Run], ['=', '>']) then
     inc(Run);
 end;
 
 procedure TMySynAsmSyn.NullProc;
 begin
-  fTokenID := tkNull;
+  fTokenId := tkNull;
   inc(Run);
 end;
 
@@ -615,7 +555,7 @@ begin
   S := S + fLine[Run];
 
   inc(Run);
-  fTokenID := tkNumber;
+  fTokenId := tkNumber;
   while IsNumberChar do
   begin
     S := S + fLine[Run];
@@ -626,7 +566,7 @@ begin
   begin
     fSelectWordAttri.Style := fNumberAttri.Style;
     fSelectWordAttri.Foreground := fNumberAttri.Foreground;
-    fTokenID := tkSelWord;
+    fTokenId := tkSelWord;
   end;
 
 end;
@@ -634,12 +574,12 @@ end;
 procedure TMySynAsmSyn.SlashProc;
 begin
   inc(Run);
-  fTokenID := tkSymbol;
+  fTokenId := tkSymbol;
 end;
 
 procedure TMySynAsmSyn.SpaceProc;
 begin
-  fTokenID := tkSpace;
+  fTokenId := tkSpace;
   repeat
     inc(Run);
   until (fLine[Run] > #32) or IsLineEnd(Run);
@@ -647,7 +587,7 @@ end;
 
 procedure TMySynAsmSyn.StringProc;
 begin
-  fTokenID := tkString;
+  fTokenId := tkString;
   if (fLine[Run + 1] = #34) and (fLine[Run + 2] = #34) then
     inc(Run, 2);
   repeat
@@ -666,9 +606,19 @@ begin
   fSelectWord := LowerCase(Value);
 end;
 
+procedure TMySynAsmSyn.SetUnderscoreWord(const Value: string);
+begin
+  fUnderscoreWord := LowerCase(Value);
+end;
+
+function TMySynAsmSyn.equalsUnderscoreWord(const Value: string): Boolean;
+begin
+  Result := (fUnderscoreWord = LowerCase(Value))
+end;
+
 procedure TMySynAsmSyn.SingleQuoteStringProc;
 begin
-  fTokenID := tkString;
+  fTokenId := tkString;
   if (fLine[Run + 1] = #39) and (fLine[Run + 2] = #39) then
     inc(Run, 2);
   repeat
@@ -685,13 +635,13 @@ end;
 procedure TMySynAsmSyn.SymbolProc;
 begin
   inc(Run);
-  fTokenID := tkSymbol;
+  fTokenId := tkSymbol;
 end;
 
 procedure TMySynAsmSyn.UnknownProc;
 begin
   inc(Run);
-  fTokenID := tkIdentifier;
+  fTokenId := tkIdentifier;
 end;
 
 procedure TMySynAsmSyn.Next;
@@ -760,6 +710,8 @@ begin
       Result := fRazAttri;
     SYN_ATTR_SELWORD:
       Result := fSelectWordAttri;
+    SYN_ATTR_UNDERSCOREWORD:
+      Result := fUnderscoreWordAttri;
   else
     Result := nil;
   end;
@@ -772,7 +724,7 @@ end;
 
 function TMySynAsmSyn.GetTokenAttribute: TSynHighlighterAttributes;
 begin
-  case fTokenID of
+  case fTokenId of
     tkComment:
       Result := fCommentAttri;
     tkIdentifier:
@@ -799,6 +751,8 @@ begin
       Result := fRazAttri;
     tkSelWord:
       Result := fSelectWordAttri;
+    tkUnderscoreWord:
+      Result := fUnderscoreWordAttri;
     tkUnknown:
       Result := fIdentifierAttri;
   else
@@ -808,12 +762,12 @@ end;
 
 function TMySynAsmSyn.GetTokenKind: integer;
 begin
-  Result := Ord(fTokenID);
+  Result := Ord(fTokenId);
 end;
 
 function TMySynAsmSyn.GetTokenID: TtkTokenKind;
 begin
-  Result := fTokenID;
+  Result := fTokenId;
 end;
 
 class function TMySynAsmSyn.GetLanguageName: string;

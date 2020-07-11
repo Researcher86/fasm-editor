@@ -272,9 +272,6 @@ Coordinates=1000,574,40,36
 [N43]
 Coordinates=951,574,40,36
 
-[StatusBar1]
-Coordinates=479,10,78,58
-
 [BCloseProjectStruc]
 Coordinates=263,258,126,36
 
@@ -654,5 +651,5 @@ Coordinates=615,796,46,36
 Coordinates=1425,864,88,36
 
 []
-Coordinates=516,790,91,36
+Coordinates=479,10,78,58
 

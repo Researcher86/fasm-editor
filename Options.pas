@@ -278,10 +278,15 @@ begin
     RazAttri.Foreground := ColorRaz.Selected;
   end;
 
-  MySynAsmSyn := TMySynAsmSyn.Create(LowerCase(Trim(MemoCommand.Text)),
-    LowerCase(Trim(MemoCommandFPU.Text)), LowerCase(Trim(MemoDir.Text)),
-    LowerCase(Trim(MemoJump.Text)), LowerCase(Trim(MemoReg.Text)),
-    LowerCase(Trim(MemoRaz.Text)), Opt);
+  MySynAsmSyn := TMySynAsmSyn.Create(
+    LowerCase(Trim(MemoCommand.Text)),
+    LowerCase(Trim(MemoCommandFPU.Text)),
+    LowerCase(Trim(MemoDir.Text)),
+    LowerCase(Trim(MemoJump.Text)),
+    LowerCase(Trim(MemoReg.Text)),
+    LowerCase(Trim(MemoRaz.Text)),
+    Opt
+  );
 
   with FormEditor.PageControl1 do
     for I := 1 to PageCount - 1 do
@@ -375,8 +380,7 @@ procedure TFormOptions.BFontClick(Sender: TObject);
 begin
   if FontDialog1.Execute then
   begin
-    EditFont.Text := FontDialog1.Font.Name + ', ' +
-      IntToStr(FontDialog1.Font.Size);
+    EditFont.Text := FontDialog1.Font.Name + ', ' + IntToStr(FontDialog1.Font.Size);
     SynMemoOpt.Font := FontDialog1.Font;
     EditFont.Font := FontDialog1.Font;
   end;

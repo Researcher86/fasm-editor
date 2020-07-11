@@ -9,3 +9,4 @@ Project/**/*.exe
 Demos/**/*.exe
 img/Res
 .idea/
+Options/

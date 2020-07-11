@@ -28,7 +28,7 @@ object FormEditor: TFormEditor
   TextHeight = 13
   object Splitter5: TSplitter
     Left = 0
-    Top = 389
+    Top = 408
     Width = 856
     Height = 3
     Cursor = crVSplit
@@ -42,34 +42,11 @@ object FormEditor: TFormEditor
   object Splitter4: TSplitter
     Left = 275
     Top = 22
-    Height = 367
+    Height = 386
     ResizeStyle = rsLine
     ExplicitLeft = 226
     ExplicitTop = 8
     ExplicitHeight = 323
-  end
-  object StatusBar1: TStatusBar
-    Left = 0
-    Top = 562
-    Width = 856
-    Height = 19
-    Panels = <
-      item
-        Text = #1057#1090#1088#1086#1082#1072':'
-        Width = 120
-      end
-      item
-        Text = #1057#1090#1086#1083#1073#1077#1094':'
-        Width = 120
-      end
-      item
-        Text = #1042#1089#1090#1072#1074#1082#1072
-        Width = 100
-      end
-      item
-        Text = #1060#1072#1081#1083':'
-        Width = 50
-      end>
   end
   object ToolBar1: TToolBar
     Left = 0
@@ -80,7 +57,7 @@ object FormEditor: TFormEditor
     Caption = 'ToolBar1'
     Images = ToolbarImageList
     List = True
-    TabOrder = 1
+    TabOrder = 0
     object ToolButton1: TToolButton
       Left = 0
       Top = 0
@@ -304,24 +281,26 @@ object FormEditor: TFormEditor
     Left = 278
     Top = 22
     Width = 578
-    Height = 367
+    Height = 386
     ActivePage = TabSheetGlav
     Align = alClient
     Images = MainMenuImageList
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 2
+    TabOrder = 1
     OnChange = PageControl1Change
     OnContextPopup = PageControl1ContextPopup
     OnMouseMove = PageControl1MouseMove
+    ExplicitHeight = 367
     object TabSheetGlav: TTabSheet
       Caption = #1053#1072#1095#1072#1083#1100#1085#1072#1103' '#1089#1090#1088#1072#1085#1080#1094#1072
       ImageIndex = 46
+      ExplicitHeight = 338
       object Image1: TImage
         Left = 0
         Top = 0
         Width = 570
-        Height = 338
+        Height = 357
         Align = alClient
         Picture.Data = {
           0A544A504547496D6167652ACA0200FFD8FFE000104A46494600010101012C01
@@ -6057,11 +6036,12 @@ object FormEditor: TFormEditor
     Left = 0
     Top = 22
     Width = 275
-    Height = 367
+    Height = 386
     Align = alLeft
     BevelOuter = bvNone
     Constraints.MinWidth = 20
-    TabOrder = 3
+    TabOrder = 2
+    ExplicitHeight = 367
     object Splitter1: TSplitter
       Left = 0
       Top = 265
@@ -6187,10 +6167,11 @@ object FormEditor: TFormEditor
       Left = 0
       Top = 268
       Width = 275
-      Height = 99
+      Height = 118
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 1
+      ExplicitHeight = 99
       object PanelTitleStruc: TPanel
         Left = 0
         Top = 0
@@ -6265,7 +6246,7 @@ object FormEditor: TFormEditor
         Left = 0
         Top = 17
         Width = 275
-        Height = 82
+        Height = 101
         Align = alClient
         Header.AutoSizeIndex = -1
         Header.DefaultHeight = 17
@@ -6285,13 +6266,14 @@ object FormEditor: TFormEditor
         OnGetImageIndex = ExplorerVarGetImageIndex
         OnGetHint = ExplorerVarGetHint
         OnGetPopupMenu = ExplorerVarGetPopupMenu
+        ExplicitHeight = 82
         Columns = <>
       end
     end
   end
   object PageControlMesAndHex: TPageControl
     Left = 0
-    Top = 392
+    Top = 411
     Width = 856
     Height = 170
     ActivePage = TabSheet1
@@ -6305,8 +6287,9 @@ object FormEditor: TFormEditor
     Images = MainMenuImageList
     MultiLine = True
     ParentFont = False
-    TabOrder = 4
+    TabOrder = 3
     TabPosition = tpBottom
+    ExplicitTop = 392
     object TabSheet1: TTabSheet
       Caption = #1057#1086#1086#1073#1097#1077#1085#1080#1103
       ImageIndex = 47
@@ -6339,6 +6322,7 @@ object FormEditor: TFormEditor
         Cursor = crIBeam
         Align = alClient
         BevelOuter = bvNone
+        BorderStyle = bsSingle
         Caption = 'HexEditor'
         Color = clWindow
         Font.Charset = DEFAULT_CHARSET
@@ -6367,21 +6351,17 @@ object FormEditor: TFormEditor
         FontGutter.Style = []
         Mode = vbmodeHex
         TextWidthHex = 32
-        ExplicitLeft = 128
-        ExplicitTop = -7
-        ExplicitWidth = 200
-        ExplicitHeight = 150
       end
     end
   end
   object PanelCloseH_D: TPanel
-    Left = 787
-    Top = 541
+    Left = 788
+    Top = 560
     Width = 68
     Height = 19
     Anchors = [akRight, akBottom]
     BevelOuter = bvNone
-    TabOrder = 5
+    TabOrder = 4
     DesignSize = (
       68
       19)
@@ -6629,7 +6609,7 @@ object FormEditor: TFormEditor
       object N60: TMenuItem
         Caption = #1050#1086#1084#1084#1077#1085#1090#1072#1088#1080#1081
         ImageIndex = 19
-        ShortCut = 16570
+        ShortCut = 16495
         OnClick = N60Click
       end
       object N66: TMenuItem
@@ -8048,7 +8028,7 @@ object FormEditor: TFormEditor
     Left = 40
     Top = 360
     Bitmap = {
-      494C0101120018000C0010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C010112001800100010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000005000000001002000000000000050
       0000000000000000000000000000000000000000000000000000000000002020
       20215050505D4646464E323232351F1F1F200F0F0F1005050506000000010000
@@ -8721,7 +8701,7 @@ object FormEditor: TFormEditor
     Left = 136
     Top = 368
     Bitmap = {
-      494C0101380048000C0010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C010138004800100010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       000000000000360000002800000040000000F0000000010020000000000000F0
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -10716,7 +10696,7 @@ object FormEditor: TFormEditor
     Left = 32
     Top = 432
     Bitmap = {
-      494C01010A0018000C000E000F00FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C01010A00180010000E000F00FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000380000002D00000001002000000000006027
       0000000000000000000000000000000000000000000000000000027393000273
       9300027393000273930002739300027393000273930002739300027393000273
@@ -11055,7 +11035,7 @@ object FormEditor: TFormEditor
     Left = 96
     Top = 184
     Bitmap = {
-      494C0101060008000C0010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C010106000800100010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000002000000001002000000000000020
       0000000000000000000000000000000000000000000000000000F7F7F7FFF0F0
       EFFFEEEEEEFFEBEBEBFFE9E9E9FFE8E8E8FFE6E6E6FFE5E5E5FFE4E4E4FFE3E3
@@ -11332,7 +11312,7 @@ object FormEditor: TFormEditor
     Left = 264
     Top = 448
     Bitmap = {
-      494C0101030008000C0010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C010103000800100010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000D0D0D000D0D0
       D000D0D0D000D0D0D000D0D0D000D0D0D000D0D0D000D0D0D000D0D0D000D0D0

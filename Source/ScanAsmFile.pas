@@ -3,7 +3,7 @@ unit ScanAsmFile;
 interface
 
 uses
-  SysUtils, StrUtils, Classes, MySynHighlighterAsm;
+  SysUtils, StrUtils, Classes, MySynHighlighterAsm, Constants;
 
 type
   TTokenKind = (tkImport, tkInterface, tkMacro, tkStruct, tkStruc, tkProc,
@@ -177,14 +177,16 @@ type
     procedure Ident;
     function IsIdentChar: Boolean; inline;
     function IsNumberChar: Boolean; inline;
-    function IsIdentName(var S: string): Boolean; // уское место
-    // function IsInvalidName(var S: string): Boolean; // уское место
+    function IsIdentName(var S: string): Boolean; // СѓСЃРєРѕРµ РјРµСЃС‚Рѕ
+    // function IsInvalidName(var S: string): Boolean; // СѓСЃРєРѕРµ РјРµСЃС‚Рѕ
     procedure DelComent(var S: string); inline;
   public
     constructor Create;
     destructor Destroy; override;
     function GetLongNameType(const S: string): string;
     procedure BeginScan(var S: string; Include: PInclude = nil);
+    procedure FindVar(ProjectPath: string; IncPath: string);
+    function FindVarNameAndPath(const VarName: string): TTokenKind;
     procedure FindInclude(var S: string);
     procedure ClearList;
   end;
@@ -214,7 +216,7 @@ implementation
 
 var
   SInclude,
-  // SImport,                 // Сохронять имена для поиска
+  // SImport,                 // РЎРѕС…СЂРѕРЅСЏС‚СЊ РёРјРµРЅР° РґР»СЏ РїРѕРёСЃРєР°
   SInterfase,
   // SMacro,
   SStruct, SStruc: { ,
@@ -222,6 +224,198 @@ var
     SLabel,
     SConst,
     SVar: } string;
+
+function TScan.FindVarNameAndPath(const VarName: string): TTokenKind;
+begin
+  ptrImport := ListImport;
+  while ptrImport <> nil do
+  begin
+
+    if ptrImport^.fName = VarName then
+    begin
+      Result := tkImport;
+      Exit;
+    end;
+
+    ptrImport := ptrImport^.fNext;
+  end;
+
+  ptrInterface := ListInterface;
+  while ptrInterface <> nil do
+  begin
+
+    if ptrInterface^.fName = VarName then
+    begin
+      Result := tkInterface;
+      Exit;
+    end;
+
+    ptrInterface := ptrInterface^.fNext;
+  end;
+
+  ptrMacro := ListMacro;
+  while ptrMacro <> nil do
+  begin
+
+    if ptrMacro^.fName = VarName then
+    begin
+      Result := tkMacro;
+      Exit;
+    end;
+
+    ptrMacro := ptrMacro^.fNext;
+  end;
+
+  ptrStruct := ListStruct;
+  while ptrStruct <> nil do
+  begin
+
+    if ptrStruct^.fName = VarName then
+    begin
+      Result := tkStruct;
+      Exit;
+    end;
+
+    ptrStruct := ptrStruct^.fNext;
+  end;
+
+  ptrStruc := ListStruc;
+  while ptrStruc <> nil do
+  begin
+
+    if ptrStruc^.fName = VarName then
+    begin
+      Result := tkStruc;
+      Exit;
+    end;
+
+    ptrStruc := ptrStruc^.fNext;
+  end;
+
+  ptrProc := ListProc;
+  while ptrProc <> nil do
+  begin
+
+    if ptrProc^.fName = VarName then
+    begin
+      Result := tkProc;
+      Exit;
+    end;
+
+    ptrProc := ptrProc^.fNext;
+  end;
+
+  ptrLabel := ListLabel;
+  while ptrLabel <> nil do
+  begin
+
+    if (ptrLabel^.fName = VarName) or (ptrLabel^.fName = '.' + VarName) then
+    begin
+      Result := tkLabel;
+      Exit;
+    end;
+
+    ptrLabel := ptrLabel^.fNext;
+  end;
+
+  ptrConst := ListConst;
+  while ptrConst <> nil do
+  begin
+
+    if ptrConst^.fName = VarName then
+    begin
+      Result := tkConst;
+      Exit;
+    end;
+
+    ptrConst := ptrConst^.fNext;
+  end;
+
+  ptrVar := ListVar;
+  while ptrVar <> nil do
+  begin
+
+    if ptrVar^.fName = VarName then
+    begin
+      Result := tkVar;
+      Exit;
+    end;
+
+    ptrVar := ptrVar^.fNext;
+  end;
+
+  ptrType := ListType;
+  while ptrType <> nil do
+  begin
+
+    if ptrType^.fName = VarName then
+    begin
+      Result := tkType;
+      Exit;
+    end;
+
+    ptrType := ptrType^.fNext;
+  end;
+end;
+
+procedure TScan.FindVar(ProjectPath: string; IncPath: string);
+var
+  S: string;
+  Src: TMyStringList;
+  ptrIncludeTemp: PInclude;
+begin
+  Src := TMyStringList.Create;
+
+  ptrIncludeTemp := nil;
+  ptrIncludeTemp := ListInclude;
+  while ptrIncludeTemp <> nil do
+  begin
+    if FileExists(GetFullPath(ptrIncludeTemp^.fName)) then
+      Src.LoadFromFile(GetFullPath(ptrIncludeTemp^.fName))
+
+    else if FileExists(ProjectPath + ptrIncludeTemp^.fName) then
+      Src.LoadFromFile(ProjectPath + ptrIncludeTemp^.fName)
+
+    else if FileExists(GetFullPath(IncPath + '\' + ptrIncludeTemp^.fName)) then
+      Src.LoadFromFile(GetFullPath(IncPath + '\' + ptrIncludeTemp^.fName));
+
+    S := Src.Text;
+    Scan.FindInclude(S);
+    ptrIncludeTemp := ptrIncludeTemp^.fNext;
+  end;
+
+  ptrInclude := ListInclude;
+  while ptrInclude <> nil do
+  begin
+    if FileExists(GetFullPath(ptrInclude^.fName)) then
+      Src.LoadFromFile(GetFullPath(ptrInclude^.fName))
+    else if FileExists(ProjectPath + ptrInclude^.fName) then
+      Src.LoadFromFile(ProjectPath + ptrInclude^.fName)
+    else if FileExists(GetFullPath(IncPath + '\' + ptrInclude^.fName)) then
+      Src.LoadFromFile(GetFullPath(IncPath + '\' + ptrInclude^.fName))
+
+    else
+    begin
+      ptrIncludeTemp := ListInclude;
+      while ptrIncludeTemp <> nil do
+      begin
+        S := GetFullPath(ExtractFilePath(ptrIncludeTemp^.fName) + ptrInclude^.fName);
+        if FileExists(S) then
+        begin
+          Src.LoadFromFile(S);
+          Break;
+        end;
+        ptrIncludeTemp := ptrIncludeTemp^.fNext;
+      end;
+    end;
+
+    ptrInclude^.fName := Src.fFile;
+    S := Src.Text;
+    Scan.BeginScan(S, ptrInclude);
+    ptrInclude := ptrInclude^.fNext;
+  end;
+  Src.Free;
+end;
 
 function TScan.GetLongNameType(const S: string): string;
 var
@@ -1102,7 +1296,7 @@ begin
     fTokenID := tkProc;
     Result := True;
   end
-  else if (S2 = 'db') or (S2 = 'dw') or // rb и т.д.
+  else if (S2 = 'db') or (S2 = 'dw') or // rb Рё С‚.Рґ.
     (S2 = 'dd') or (S2 = 'dq') or (S2 = 'dt') or (S2 = 'equ') then
   begin
     fTokenID := tkVar;

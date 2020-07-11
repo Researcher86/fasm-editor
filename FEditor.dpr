@@ -19,34 +19,35 @@ uses
   RegistryExt in 'Source\RegistryExt.pas',
   ScanAsmFile in 'Source\ScanAsmFile.pas',
   uGotoLine in 'uGotoLine.pas' {FormGotoLine},
-  uListsExportsDLL in 'uListsExportsDLL.pas' {FormListsExportsDLL};
+  uListsExportsDLL in 'uListsExportsDLL.pas' {FormListsExportsDLL},
+  Constants in 'Source\Constants.pas';
 
 {$R *.res}
 {$R rsrc.RES}
 
 var
-        A: ATOM;
-        CheckEvent: TEvent;
-        F: AnsiString;
-
+  A: ATOM;
+  CheckEvent: TEvent;
+  F: AnsiString;
 begin
-        CheckEvent := TEvent.Create(nil, False, True, 'FEDITOR_CHECKEXIST');
-        if CheckEvent.WaitFor(10) <> wrSignaled then
-        begin
-                CheckEvent.Free;
-                if ParamCount >= 1 then
-                begin
-                        F := ParamStr(1);
-                        A := GlobalAddAtomA(PAnsiChar(F));
-                        PostMessage(FindWindow('TFormEditor', nil),
-                          WM_LOADFILE, A, 0);
-                end;
-                Exit;
-        end;
+  CheckEvent := TEvent.Create(nil, False, True, 'FEDITOR_CHECKEXIST');
+  if CheckEvent.WaitFor(10) <> wrSignaled then
+  begin
+    CheckEvent.Free;
 
-        Application.Initialize;
-        Application.MainFormOnTaskbar := True;
-        Application.CreateForm(TFormEditor, FormEditor);
+    if ParamCount >= 1 then
+    begin
+      F := ParamStr(1);
+      A := GlobalAddAtomA(PAnsiChar(F));
+      PostMessage(GetMainFormHandle, WM_LOADFILE, A, 0);
+    end;
+
+    Exit;
+  end;
+
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TFormEditor, FormEditor);
   Application.CreateForm(TFormOptions, FormOptions);
   Application.CreateForm(TFormNewProject, FormNewProject);
   Application.CreateForm(TFormSearchReplaceText, FormSearchReplaceText);
@@ -56,11 +57,10 @@ begin
   Application.CreateForm(TFormGotoLine, FormGotoLine);
   Application.CreateForm(TFormListsExportsDLL, FormListsExportsDLL);
   Application.OnShowHint := FormEditor.AppShowHint;
-        Application.Run;
+  Application.Run;
 
-        while not Application.Terminated do
-                Application.ProcessMessages;
+  while not Application.Terminated do
+    Application.ProcessMessages;
 
-        CheckEvent.Free;
-
+  CheckEvent.Free;
 end.

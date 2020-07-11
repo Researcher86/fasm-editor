@@ -1,26 +1,21 @@
-unit Main;
+п»їunit Main;
 
 interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls,
-  Forms,
+  Forms, Constants,
   Dialogs, SynEdit, Menus, SynCompletionProposal, StdCtrls,
   Buttons, ComCtrls, ExtCtrls, ToolWin, MyTabSheet, Clipbrd, StrUtils,
   jpeg, VirtualTrees, SynExportHTML, SynEditExport,
   SynExportRTF, SynMemo, SynEditKeyCmds, ScanAsmFile,
   SynEditTextBuffer, SynEditTypes, ImgList, Grids, System.ImageList, ATBinHex, ATxSHex;
 
-const
-  WM_LOADFILE = WM_USER + 100;
-  WM_UPDATEEXPLORER_VAR = WM_USER + 200;
-
 type
   TCopyHexData = (chASM, chCPP, chDelphi);
 
 type
   TFormEditor = class(TForm)
-    StatusBar1: TStatusBar;
     Splitter5: TSplitter;
     ToolBar1: TToolBar;
     ToolButton1: TToolButton;
@@ -258,32 +253,22 @@ type
     procedure N12Click(Sender: TObject);
     procedure N37Click(Sender: TObject);
     procedure N38Click(Sender: TObject);
-    procedure ExplorerProjectlGetText(Sender: TBaseVirtualTree;
-      Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
-      var CellText: string);
+    procedure ExplorerProjectlGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
     procedure ExplorerProjectDblClick(Sender: TObject);
-    procedure ExplorerVarGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
-      Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
-    procedure ExplorerProjectPaintText(Sender: TBaseVirtualTree;
-      const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
-      TextType: TVSTTextType);
-    procedure ExplorerProjectGetPopupMenu(Sender: TBaseVirtualTree;
-      Node: PVirtualNode; Column: TColumnIndex; const P: TPoint;
-      var AskParent: Boolean; var PopupMenu: TPopupMenu);
+    procedure ExplorerVarGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
+    procedure ExplorerProjectPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
+    procedure ExplorerProjectGetPopupMenu(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; const P: TPoint; var AskParent: Boolean; var PopupMenu: TPopupMenu);
     procedure N46Click(Sender: TObject);
     procedure N48Click(Sender: TObject);
-    procedure ExplorerProjectEditing(Sender: TBaseVirtualTree;
-      Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
-    procedure ExplorerProjectNewText(Sender: TBaseVirtualTree;
-      Node: PVirtualNode; Column: TColumnIndex; NewText: string);
+    procedure ExplorerProjectEditing(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
+    procedure ExplorerProjectNewText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; NewText: string);
     procedure BCloseProjectStrucClick(Sender: TObject);
     procedure BCloseStrucClick(Sender: TObject);
     procedure N27Click(Sender: TObject);
     procedure N28Click(Sender: TObject);
     procedure N50Click(Sender: TObject);
     procedure N41Click(Sender: TObject);
-    procedure ExplorerProjectKeyDown(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
+    procedure ExplorerProjectKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure Source1Click(Sender: TObject);
     procedure SaveDialogCanClose(Sender: TObject; var CanClose: Boolean);
     procedure Include1Click(Sender: TObject);
@@ -291,8 +276,7 @@ type
     procedure N34Click(Sender: TObject);
     procedure N51Click(Sender: TObject);
     procedure ToolButton6Click(Sender: TObject);
-    procedure PageControl1ContextPopup(Sender: TObject; MousePos: TPoint;
-      var Handled: Boolean);
+    procedure PageControl1ContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
     procedure N55Click(Sender: TObject);
     procedure N54Click(Sender: TObject);
     procedure N58Click(Sender: TObject);
@@ -301,8 +285,7 @@ type
     procedure RTF2Click(Sender: TObject);
     procedure HTML2Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure SynCompletionExecute(Kind: SynCompletionType; Sender: TObject;
-      var CurrentInput: string; var x, y: Integer; var CanExecute: Boolean);
+    procedure SynCompletionExecute(Kind: SynCompletionType; Sender: TObject; var CurrentInput: string; var x, y: Integer; var CanExecute: Boolean);
     procedure N13Click(Sender: TObject);
     procedure N66Click(Sender: TObject);
     procedure N67Click(Sender: TObject);
@@ -318,9 +301,7 @@ type
     procedure N82Click(Sender: TObject);
     procedure N85Click(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure ExplorerVarGetPopupMenu(Sender: TBaseVirtualTree;
-      Node: PVirtualNode; Column: TColumnIndex; const P: TPoint;
-      var AskParent: Boolean; var PopupMenu: TPopupMenu);
+    procedure ExplorerVarGetPopupMenu(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; const P: TPoint; var AskParent: Boolean; var PopupMenu: TPopupMenu);
     procedure ExplorerVar1Click(Sender: TObject);
     procedure ExplorerVarDblClick(Sender: TObject);
     procedure N86Click(Sender: TObject);
@@ -355,43 +336,28 @@ type
     procedure N104Click(Sender: TObject);
     procedure N105Click(Sender: TObject);
     procedure N106Click(Sender: TObject);
-    procedure SynHintExecute(Kind: SynCompletionType; Sender: TObject;
-      var CurrentInput: string; var x, y: Integer; var CanExecute: Boolean);
-    procedure SynCompletionCodeCompletion(Sender: TObject; var Value: string;
-      Shift: TShiftState; Index: Integer; EndToken: Char);
+    procedure SynHintExecute(Kind: SynCompletionType; Sender: TObject; var CurrentInput: string; var x, y: Integer; var CanExecute: Boolean);
+    procedure SynCompletionCodeCompletion(Sender: TObject; var Value: string; Shift: TShiftState; Index: Integer; EndToken: Char);
     procedure DLL1Click(Sender: TObject);
-    procedure PageControl1MouseMove(Sender: TObject; Shift: TShiftState;
-      x, y: Integer);
-    procedure ExplorerVarGetHint(Sender: TBaseVirtualTree; Node: PVirtualNode;
-      Column: TColumnIndex; var LineBreakStyle: TVTTooltipLineBreakStyle;
-      var HintText: string);
-    procedure ExplorerProjectGetHint(Sender: TBaseVirtualTree;
-      Node: PVirtualNode; Column: TColumnIndex;
-      var LineBreakStyle: TVTTooltipLineBreakStyle; var HintText: string);
+    procedure PageControl1MouseMove(Sender: TObject; Shift: TShiftState; x, y: Integer);
+    procedure ExplorerVarGetHint(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; var LineBreakStyle: TVTTooltipLineBreakStyle; var HintText: string);
+    procedure ExplorerProjectGetHint(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; var LineBreakStyle: TVTTooltipLineBreakStyle; var HintText: string);
     procedure BCloseH_DClick(Sender: TObject);
     procedure Win32APIHelp1Click(Sender: TObject);
     procedure N121Click(Sender: TObject);
-    procedure ExplorerProjectGetImageIndex(Sender: TBaseVirtualTree;
-      Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
-      var Ghosted: Boolean; var ImageIndex: TImageIndex);
-    procedure ExplorerVarGetImageIndex(Sender: TBaseVirtualTree;
-      Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
-      var Ghosted: Boolean; var ImageIndex: TImageIndex);
-    procedure VirtualStringTree1GetText(Sender: TBaseVirtualTree;
-      Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
-      var CellText: string);
+    procedure ExplorerProjectGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
+    procedure ExplorerVarGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
+    procedure VirtualStringTree1GetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
   private
-    procedure WMProc_LoadFile(var Msg: TMessage); message WM_LOADFILE;
-    procedure WMProc_UpdateExplorerVar(var Msg: TMessage);
-      message WM_UPDATEEXPLORER_VAR;
-    function Compile(const CommandLine: AnsiString; const Dir: AnsiString)
-      : AnsiString;
+    procedure LoadFile(var Msg: TMessage); message WM_LOADFILE;
+    procedure UpdateExplorerVar(var Msg: TMessage); message WM_UPDATEEXPLORER_VAR;
+    procedure GotoVarAtMouse(var Msg: TMessage); message WM_GOTO_VAR_AT_MOUSE;
+    procedure EditStatusChange(var Msg: TMessage); message WM_EDIT_STATUS_CHANGE;
+    function Compile(const CommandLine: AnsiString; const Dir: AnsiString): AnsiString;
     procedure FileCompile(const FileName: AnsiString; Run: Boolean = False);
-    function FindPage(const FindName: AnsiString;
-      FindVar: Boolean = True): Boolean;
+    function FindPage(const FindName: AnsiString; FindVar: Boolean = True): Boolean;
     procedure FindStrInFile(const S: AnsiString);
-    function CreatePage(const FileName: AnsiString; FindVar: Boolean = True)
-      : TMyTabSheet;
+    function CreatePage(const FileName: AnsiString; FindVar: Boolean = True): TMyTabSheet;
     procedure DestroyAllPage;
     procedure SaveAll;
     procedure RunProg;
@@ -401,28 +367,22 @@ type
     function FindNode(const NodeName: AnsiString; Src: Boolean): Boolean;
     procedure ModifiProjectFile(const PrtFile: AnsiString);
     procedure SaveProjectAs;
-    procedure AddOrDelSpace(AddSpace: Boolean = True);
-    procedure RegisterSymbol(Big: Boolean = True);
-    function GetFullPath(const Path: AnsiString): AnsiString;
     procedure LoadLastFiles;
     procedure AddLastFiles(const FileName: string);
     procedure MenuLastFilesClick(Sender: TObject);
     procedure ClearP;
-    procedure FindVar;
-    function FindVarNameAndPath(const VarName: string): TTokenKind;
     procedure SetBookMark(Mark: Integer);
     procedure GoBookMark(Mark: Integer);
     procedure CopyHexData(Types: TCopyHexData = chASM);
-    procedure AddSeparator(Separator: Byte);
     procedure ClearHexEditor(HexEditor: TATBinHex);
+    procedure GotoVar(VarName: string);
   public
     procedure CreateExpVar;
     function LoadProject(const FileName: AnsiString): Boolean;
     procedure LoadAsmOrIncFile(const FileName: AnsiString);
     procedure CloseProject;
     procedure Vis(Status: Boolean);
-    procedure AppShowHint(var HintStr: string; var CanShow: Boolean;
-      var HintInfo: THintInfo);
+    procedure AppShowHint(var HintStr: string; var CanShow: Boolean; var HintInfo: THintInfo);
   end;
 
 var
@@ -433,8 +393,7 @@ implementation
 {$R *.dfm}
 
 uses ShellApi, Options, NewProject, IniFiles, uSearchReplaceText,
-  About, FindInFile, ParamRun, uGotoLine, uListsExportsDLL,
-  MySynHighlighterAsm, Unit1;
+  About, FindInFile, ParamRun, uGotoLine, uListsExportsDLL, MySynHighlighterAsm;
 
 const
   LastFiles = 'Options\LastFiles.lf';
@@ -467,33 +426,29 @@ var
   ExpFieldVar: PExplorerFieldVar;
 
   NodeDirPtr, NodeDirSource, NodeDirInclude, NodeSource, NodeInclude,
-
-    varNodeDirInclude, varNodeDirImport, varNodeDirInterface, varNodeDirMacro,
-    varNodeDirStruct, varNodeDirProc, varNodeDirLabel, varNodeDirConst,
-    NodeDirVar, NodeDirType, NodeTemp: PVirtualNode;
+  varNodeDirInclude, varNodeDirImport, varNodeDirInterface, varNodeDirMacro,
+  varNodeDirStruct, varNodeDirProc, varNodeDirLabel, varNodeDirConst,
+  NodeDirVar, NodeDirType, NodeTemp: PVirtualNode;
 
 var
   RecOpt: packed record fH, fW: Integer;
-end;
-Ini:
-TIniFile;
-ProjectPath, ProjectFile, ProjectName: AnsiString;
-LoadProjectB, Dot: Boolean;
+  end;
+  Ini: TIniFile;
+  ProjectPath, ProjectFile, ProjectName: AnsiString;
+  LoadProjectB, Dot: Boolean;
 
-StartupInfoProg, StartupInfoDBG: TStartupInfoA;
-ProcessInformationProg, ProcessInformationDBG: TProcessInformation;
-ParamRunProg:
-AnsiString = '';
-ProgRun, DBGRun: Boolean;
-ActPage:
-Integer = -1;
+  StartupInfoProg, StartupInfoDBG: TStartupInfoA;
+  ProcessInformationProg, ProcessInformationDBG: TProcessInformation;
+  ParamRunProg: AnsiString = '';
+  ProgRun, DBGRun: Boolean;
+  ActPage: Integer = -1;
 
 procedure TFormEditor.ClearHexEditor(HexEditor: TATBinHex);
 var
   DefaultValueForHexEditor: TStringStream;
   data : array[0..303] of Word;
 begin
-  FillChar(data, SizeOf(data), 0);
+  ZeroMemory(@data, SizeOf(data));
 
   DefaultValueForHexEditor := TStringStream.Create;
   DefaultValueForHexEditor.Write(data, SizeOf(data));
@@ -501,232 +456,34 @@ begin
   HexEditor.OpenStream(DefaultValueForHexEditor);
 end;
 
-procedure TFormEditor.FindVar;
-var
-  S: string;
-  Src: TMyStringList;
-  ptrIncludeTemp: PInclude;
-begin
-  Src := TMyStringList.Create;
-
-  ptrIncludeTemp := nil;
-  ptrIncludeTemp := ListInclude;
-  while ptrIncludeTemp <> nil do
-  begin
-    if FileExists(GetFullPath(ptrIncludeTemp^.fName)) then
-      Src.LoadFromFile(GetFullPath(ptrIncludeTemp^.fName))
-
-    else if FileExists(ProjectPath + ptrIncludeTemp^.fName) then
-      Src.LoadFromFile(ProjectPath + ptrIncludeTemp^.fName)
-
-    else if FileExists(GetFullPath(FormOptions.EditINC.Text + '\' +
-      ptrIncludeTemp^.fName)) then
-      Src.LoadFromFile(GetFullPath(FormOptions.EditINC.Text + '\' +
-        ptrIncludeTemp^.fName));
-
-    S := Src.Text;
-    Scan.FindInclude(S);
-    ptrIncludeTemp := ptrIncludeTemp^.fNext;
-  end;
-
-  ptrInclude := ListInclude;
-  while ptrInclude <> nil do
-  begin
-    if FileExists(GetFullPath(ptrInclude^.fName)) then
-      Src.LoadFromFile(GetFullPath(ptrInclude^.fName))
-    else if FileExists(ProjectPath + ptrInclude^.fName) then
-      Src.LoadFromFile(ProjectPath + ptrInclude^.fName)
-    else if FileExists(GetFullPath(FormOptions.EditINC.Text + '\' +
-      ptrInclude^.fName)) then
-      Src.LoadFromFile(GetFullPath(FormOptions.EditINC.Text + '\' +
-        ptrInclude^.fName))
-
-    else
-    begin
-      ptrIncludeTemp := ListInclude;
-      while ptrIncludeTemp <> nil do
-      begin
-        S := GetFullPath(ExtractFilePath(ptrIncludeTemp^.fName) +
-          ptrInclude^.fName);
-        if FileExists(S) then
-        begin
-          Src.LoadFromFile(S);
-          Break;
-        end;
-        ptrIncludeTemp := ptrIncludeTemp^.fNext;
-      end;
-    end;
-
-    ptrInclude^.fName := Src.fFile;
-    S := Src.Text;
-    Scan.BeginScan(S, ptrInclude);
-    ptrInclude := ptrInclude^.fNext;
-  end;
-  Src.Free;
-end;
-
-function TFormEditor.FindVarNameAndPath(const VarName: string): TTokenKind;
-begin
-  ptrImport := ListImport;
-  while ptrImport <> nil do
-  begin
-
-    if ptrImport^.fName = VarName then
-    begin
-      Result := tkImport;
-      Exit;
-    end;
-
-    ptrImport := ptrImport^.fNext;
-  end;
-
-  ptrInterface := ListInterface;
-  while ptrInterface <> nil do
-  begin
-
-    if ptrInterface^.fName = VarName then
-    begin
-      Result := tkInterface;
-      Exit;
-    end;
-
-    ptrInterface := ptrInterface^.fNext;
-  end;
-
-  ptrMacro := ListMacro;
-  while ptrMacro <> nil do
-  begin
-
-    if ptrMacro^.fName = VarName then
-    begin
-      Result := tkMacro;
-      Exit;
-    end;
-
-    ptrMacro := ptrMacro^.fNext;
-  end;
-
-  ptrStruct := ListStruct;
-  while ptrStruct <> nil do
-  begin
-
-    if ptrStruct^.fName = VarName then
-    begin
-      Result := tkStruct;
-      Exit;
-    end;
-
-    ptrStruct := ptrStruct^.fNext;
-  end;
-
-  ptrStruc := ListStruc;
-  while ptrStruc <> nil do
-  begin
-
-    if ptrStruc^.fName = VarName then
-    begin
-      Result := tkStruc;
-      Exit;
-    end;
-
-    ptrStruc := ptrStruc^.fNext;
-  end;
-
-  ptrProc := ListProc;
-  while ptrProc <> nil do
-  begin
-
-    if ptrProc^.fName = VarName then
-    begin
-      Result := tkProc;
-      Exit;
-    end;
-
-    ptrProc := ptrProc^.fNext;
-  end;
-
-  ptrLabel := ListLabel;
-  while ptrLabel <> nil do
-  begin
-
-    if (ptrLabel^.fName = VarName) or (ptrLabel^.fName = '.' + VarName) then
-    begin
-      Result := tkLabel;
-      Exit;
-    end;
-
-    ptrLabel := ptrLabel^.fNext;
-  end;
-
-  ptrConst := ListConst;
-  while ptrConst <> nil do
-  begin
-
-    if ptrConst^.fName = VarName then
-    begin
-      Result := tkConst;
-      Exit;
-    end;
-
-    ptrConst := ptrConst^.fNext;
-  end;
-
-  ptrVar := ListVar;
-  while ptrVar <> nil do
-  begin
-
-    if ptrVar^.fName = VarName then
-    begin
-      Result := tkVar;
-      Exit;
-    end;
-
-    ptrVar := ptrVar^.fNext;
-  end;
-
-  ptrType := ListType;
-  while ptrType <> nil do
-  begin
-
-    if ptrType^.fName = VarName then
-    begin
-      Result := tkType;
-      Exit;
-    end;
-
-    ptrType := ptrType^.fNext;
-  end;
-end;
-
 procedure TFormEditor.Win32APIHelp1Click(Sender: TObject);
 var
-  S, S2: AnsiString;
+  HelpFile, SelectedText: AnsiString;
 begin
-  S2 := '';
-  S := ExtractFilePath(Application.ExeName) + HelpPath;
-  if not FileExists(S) then
+  SelectedText := '';
+  HelpFile := ExtractFilePath(Application.ExeName) + HelpPath;
+  if not FileExists(HelpFile) then
   begin
-    MessageBoxA(Handle, 'Файл справки не найден!', 'Ошибка!',
-      MB_OK or MB_ICONERROR);
+    MessageBoxA(Handle, 'Р¤Р°Р№Р» СЃРїСЂР°РІРєРё РЅРµ РЅР°Р№РґРµРЅ!', 'РћС€РёР±РєР°!', MB_OK or MB_ICONERROR);
     Exit;
   end;
 
   if (PageControl1.ActivePage is TMyTabSheet) then
   begin
-    S2 := (PageControl1.ActivePage as TMyTabSheet).fSynMemo.SelText;
-    WinHelpA(Handle, S, HELP_PARTIALKEY, LongInt(PAnsiChar(S2)));
+    SelectedText := (PageControl1.ActivePage as TMyTabSheet).SelectedText;
+    WinHelpA(Handle, HelpFile, HELP_PARTIALKEY, LongInt(PAnsiChar(SelectedText)));
   end
   else
-    WinHelpA(Handle, S, HELP_PARTIALKEY, LongInt(PAnsiChar(S2)))
+    WinHelpA(Handle, HelpFile, HELP_PARTIALKEY, LongInt(PAnsiChar(SelectedText)))
 end;
 
-procedure TFormEditor.WMProc_LoadFile(var Msg: TMessage);
+procedure TFormEditor.LoadFile(var Msg: TMessage);
 var
   Buf: array [0 .. 255] of AnsiChar;
   S, Ext: AnsiString;
 begin
-  ZeroMemory(@Buf, 255);
-  GlobalGetAtomNameA(Msg.WParam, @Buf, 255);
+  ZeroMemory(@Buf, SizeOf(Buf));
+  GlobalGetAtomNameA(Msg.WParam, @Buf, SizeOf(Buf));
   GlobalDeleteAtom(Msg.WParam);
   S := StrPas(PAnsiChar(@Buf));
 
@@ -741,36 +498,42 @@ begin
     LoadAsmOrIncFile(S);
 end;
 
-procedure TFormEditor.WMProc_UpdateExplorerVar(var Msg: TMessage);
+procedure TFormEditor.UpdateExplorerVar(var Msg: TMessage);
 begin
   CreateExpVar;
 end;
 
-procedure TFormEditor.PageReset(const FindName: AnsiString;
-  FindVar: Boolean = True);
+procedure TFormEditor.GotoVarAtMouse(var Msg: TMessage);
+begin
+  if (PageControl1.ActivePage is TMyTabSheet) then
+  with (PageControl1.ActivePage as TMyTabSheet) do
+    Self.GotoVar(fSynMemo.WordAtMouse);
+end;
+
+procedure TFormEditor.EditStatusChange(var Msg: TMessage);
+begin
+  SynHint.Deactivate;
+end;
+
+procedure TFormEditor.PageReset(const FindName: AnsiString; FindVar: Boolean = True);
 var
   I: Integer;
-  Str, Str2: AnsiString;
 begin
-  Str := LowerCase(FindName);
-
   for I := 1 to PageControl1.PageCount - 1 do
   begin
-    Str2 := LowerCase(TMyTabSheet(PageControl1.Pages[I]).fFile);
-
-    if Str = Str2 then
+    if LowerCase(FindName) = LowerCase(TMyTabSheet(PageControl1.Pages[I]).FilePath) then
     begin
       (PageControl1.Pages[I] as TMyTabSheet).FilePath := FindName;
 
       if FindVar then
-        PostMessage(FormEditor.Handle, WM_UPDATEEXPLORER_VAR, 0, 0);
+        PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
+
       Break;
     end;
   end;
 end;
 
-function TFormEditor.FindNode(const NodeName: AnsiString; Src: Boolean)
-  : Boolean;
+function TFormEditor.FindNode(const NodeName: AnsiString; Src: Boolean): Boolean;
 begin
   Result := False;
   with ExplorerProject do
@@ -844,8 +607,7 @@ begin
       while NodeTemp <> NodeDirInclude do
       begin
         ExpFieldPrt := GetNodeData(NodeTemp);
-        Writeln(F, '  asm', CountAsm, '=', '"',
-          ExtractFileName(ExpFieldPrt^.NameNode), '"');
+        Writeln(F, '  asm', CountAsm, '=', '"', ExtractFileName(ExpFieldPrt^.NameNode), '"');
         NodeTemp := GetNext(NodeTemp);
         Inc(CountAsm);
       end;
@@ -856,8 +618,7 @@ begin
       while NodeTemp <> nil do
       begin
         ExpFieldPrt := GetNodeData(NodeTemp);
-        Writeln(F, '  inc', CountInc, '=', '"',
-          ExtractFileName(ExpFieldPrt^.NameNode), '"');
+        Writeln(F, '  inc', CountInc, '=', '"', ExtractFileName(ExpFieldPrt^.NameNode), '"');
         NodeTemp := GetNext(NodeTemp);
         Inc(CountInc);
       end;
@@ -866,8 +627,7 @@ begin
     end
   else
   begin
-    MessageBoxA(Handle, PAnsiChar('Произошла ошибка при записи файла. ' +
-      PrtFile), 'Ошибка!', MB_ICONERROR or MB_OK);
+    MessageBoxA(Handle, PAnsiChar(AnsiString('РџСЂРѕРёР·РѕС€Р»Р° РѕС€РёР±РєР° РїСЂРё Р·Р°РїРёСЃРё С„Р°Р№Р»Р°. ' + PrtFile)), 'РћС€РёР±РєР°!', MB_ICONERROR or MB_OK);
     Exit;
   end;
 
@@ -883,18 +643,13 @@ procedure TFormEditor.SaveProjectAs;
   procedure PageResetFile(const FindName, NewName: AnsiString);
   var
     I: Integer;
-    Str, Str2: AnsiString;
   begin
-    Str := LowerCase(FindName);
-
     for I := 1 to PageControl1.PageCount - 1 do
     begin
-      Str2 := LowerCase(TMyTabSheet(PageControl1.Pages[I]).fFile);
-
-      if Str = Str2 then
+      if LowerCase(FindName) = LowerCase(TMyTabSheet(PageControl1.Pages[I]).FilePath) then
       begin
         PageControl1.Pages[I].Caption := ExtractFileName(NewName);
-        (PageControl1.Pages[I] as TMyTabSheet).fFile := NewName;
+        (PageControl1.Pages[I] as TMyTabSheet).FilePath := NewName;
         Break;
       end;
     end;
@@ -973,8 +728,7 @@ begin
           if not CopyFileA(PAnsiChar(FilePath), PAnsiChar(StrFileName), False)
           then
           begin
-            MessageBoxA(Handle, 'Произошла ошибка при копировании проекта.',
-              'Ошибка!', MB_ICONERROR or MB_OK);
+            MessageBoxA(Handle, 'РџСЂРѕРёР·РѕС€Р»Р° РѕС€РёР±РєР° РїСЂРё РєРѕРїРёСЂРѕРІР°РЅРёРё РїСЂРѕРµРєС‚Р°.', 'РћС€РёР±РєР°!', MB_ICONERROR or MB_OK);
             LoadProject(S);
             Exit;
           end;
@@ -992,22 +746,23 @@ end;
 procedure TFormEditor.SetBookMark(Mark: Integer);
 var
   I: Integer;
-  Found: Boolean;
+  IsFound: Boolean;
 begin
   if (PageControl1.ActivePage is TMyTabSheet) then
     with (PageControl1.ActivePage as TMyTabSheet) do
     begin
-      Found := False;
+      IsFound := False;
       for I := Pred(fSynMemo.Marks.Count) downto 0 do
         if fSynMemo.Marks.Items[I].Line = fSynMemo.CaretY then
         begin
           if fSynMemo.Marks.Items[I].BookmarkNumber = Mark - 351 then
             fSynMemo.CommandProcessor(Mark, #0, nil);
-          Found := True;
+
+          IsFound := True;
           Break;
         end;
 
-      if not Found then
+      if not IsFound then
         fSynMemo.CommandProcessor(Mark, #0, nil);
     end;
 end;
@@ -1037,8 +792,18 @@ procedure TFormEditor.RunProg;
 
     S := '"' + S + '"' + ' "' + ParamRunProg + '"';
 
-    CreateProcessA(nil, PAnsiChar(S), nil, nil, False, NORMAL_PRIORITY_CLASS,
-      nil, PAnsiChar(ProjectPath), StartupInfoProg, ProcessInformationProg);
+    CreateProcessA(
+      nil,
+      PAnsiChar(S),
+      nil,
+      nil,
+      False,
+      NORMAL_PRIORITY_CLASS,
+      nil,
+      PAnsiChar(ProjectPath),
+      StartupInfoProg,
+      ProcessInformationProg
+    );
 
     WaitForMultipleObjects(2, @ProcessInformationProg.hProcess, True, INFINITE);
 
@@ -1080,9 +845,18 @@ procedure TFormEditor.RunDBG;
     if not FileExists(S) then
       S := ProjectPath + ProjectName + '.dll';
 
-    CreateProcessA(nil, PAnsiChar('"' + DBG + '"' + ' "' + S + '"'), nil, nil,
-      False, NORMAL_PRIORITY_CLASS, nil, nil, StartupInfoDBG,
-      ProcessInformationDBG);
+    CreateProcessA(
+      nil,
+      PAnsiChar('"' + DBG + '"' + ' "' + S + '"'),
+      nil,
+      nil,
+      False,
+      NORMAL_PRIORITY_CLASS,
+      nil,
+      nil,
+      StartupInfoDBG,
+      ProcessInformationDBG
+    );
 
     WaitForMultipleObjects(2, @ProcessInformationDBG.hProcess, True, INFINITE);
 
@@ -1104,40 +878,15 @@ begin
   ResumeThread(Thread);
 end;
 
-procedure TFormEditor.RegisterSymbol(Big: Boolean);
-var
-  A, B: TBufferCoord;
-begin
-  if (PageControl1.ActivePage is TMyTabSheet) then
-    with (PageControl1.ActivePage as TMyTabSheet) do
-    begin
-      A := fSynMemo.BlockBegin;
-      B := fSynMemo.BlockEnd;
-
-      if Big then
-        fSynMemo.SelText := UpperCase(fSynMemo.SelText)
-      else
-        fSynMemo.SelText := LowerCase(fSynMemo.SelText);
-
-      fSynMemo.BlockBegin := A;
-      fSynMemo.BlockEnd := B;
-
-      PostMessage(FormEditor.Handle, WM_UPDATEEXPLORER_VAR, 0, 0);
-    end;
-end;
-
 procedure TFormEditor.RTF2Click(Sender: TObject);
 var
   FileName: string;
-  Src: TStringList;
-  S: AnsiString;
 begin
   if (PageControl1.ActivePage is TMyTabSheet) then
     with (PageControl1.ActivePage as TMyTabSheet) do
     begin
       SaveDialogExport.Filter := SynExporterRTF.DefaultFilter;
-      SaveDialogExport.FileName :=
-        Copy(Caption, 1, Pos('.', Caption) - 1) + '.rtf';
+      SaveDialogExport.FileName := Copy(Caption, 1, Pos('.', Caption) - 1) + '.rtf';
 
       if not SaveDialogExport.Execute then
         Exit;
@@ -1147,30 +896,12 @@ begin
       if ExtractFileExt(FileName) = '' then
         FileName := FileName + '.rtf';
 
-      SynExporterRTF.Title := Caption;
-      SynExporterRTF.Color := fSynMemo.Color;
-      SynExporterRTF.Font := fSynMemo.Font;
-      SynExporterRTF.ExportAsText := True;
-      SynExporterRTF.Highlighter := fSynMemo.Highlighter;
-
-      if fSynMemo.SelText <> '' then
-      begin
-        Src := TStringList.Create;
-        S := AnsiString(fSynMemo.SelText);
-        Src.Text := S;
-        SynExporterRTF.ExportAll(Src);
-
-        Src.Free;
-      end
-      else
-        SynExporterRTF.ExportAll(fSynMemo.Lines);
-
+      ExportRtf(SynExporterRTF);
       SynExporterRTF.SaveToFile(FileName);
     end;
 end;
 
-function TFormEditor.Compile(const CommandLine: AnsiString;
-  const Dir: AnsiString): AnsiString;
+function TFormEditor.Compile(const CommandLine: AnsiString; const Dir: AnsiString): AnsiString;
 var
   SA: TSecurityAttributes;
   SI: TStartupInfoA;
@@ -1202,13 +933,12 @@ begin
       hStdError := StdOutPipeWrite;
     end;
 
-    WasOK := CreateProcessA(nil, PAnsiChar(CommandLine), nil, nil, True, 0, nil,
-      PAnsiChar(Dir), SI, PI);
+    WasOK := CreateProcessA(nil, PAnsiChar(CommandLine), nil, nil, True, 0, nil, PAnsiChar(Dir), SI, PI);
 
     CloseHandle(StdOutPipeWrite);
 
     if not WasOK then
-      raise Exception.Create('Ошибка. Проверти настройки!')
+      raise Exception.Create('РћС€РёР±РєР°. РџСЂРѕРІРµСЂС‚Рё РЅР°СЃС‚СЂРѕР№РєРё!')
     else
       try
         Line := '';
@@ -1343,77 +1073,6 @@ begin
   Clipboard.AsText := Res;
 end;
 
-procedure TFormEditor.AddSeparator(Separator: Byte);
-begin
-  if (PageControl1.ActivePage is TMyTabSheet) then
-    with (PageControl1.ActivePage as TMyTabSheet) do
-    begin
-      case Separator of
-        1:
-          begin
-            fSynMemo.SelText := #13#10 + ';===============================================================================' + #13#10;
-          end;
-
-        2:
-          begin
-            fSynMemo.SelText := #13#10 + ';-------------------------------------------------------------------------------' + #13#10;
-          end;
-      end;
-
-      PostMessage(FormEditor.Handle, WM_UPDATEEXPLORER_VAR, 0, 0);
-    end;
-end;
-
-procedure TFormEditor.AddOrDelSpace(AddSpace: Boolean = True);
-var
-  I, J, Len: Integer;
-  InString, OutString: TStringList;
-  Str: string;
-  A, B: TBufferCoord;
-begin
-  if (PageControl1.ActivePage is TMyTabSheet) then
-    with (PageControl1.ActivePage as TMyTabSheet) do
-    begin
-      InString := TStringList.Create;
-      OutString := TStringList.Create;
-
-      InString.Text := fSynMemo.SelText;
-      Len := fSynMemo.SelLength;
-
-      A := fSynMemo.BlockBegin;
-      B := fSynMemo.BlockEnd;
-
-      if AddSpace then
-        for I := 0 to InString.Count - 1 do
-        begin
-          OutString.Add('  ' + InString.Strings[I]);
-          Inc(Len, 2);
-        end
-      else
-        for I := 0 to InString.Count - 1 do
-        begin
-          Str := InString.Strings[I];
-
-          for J := 1 to 2 do
-            if (Str <> '') and (Str[1] in [' ', #9]) then
-            begin
-              Str := Copy(Str, 2, Length(Str));
-              Dec(Len);
-            end;
-
-          OutString.Add(Str);
-        end;
-
-      Str := Copy(OutString.Text, 1, Len);
-      fSynMemo.SelText := Str;
-      fSynMemo.BlockBegin := A;
-      fSynMemo.BlockEnd := B;
-      InString.Free;
-      OutString.Free;
-      PostMessage(FormEditor.Handle, WM_UPDATEEXPLORER_VAR, 0, 0);
-    end;
-end;
-
 procedure TFormEditor.ASM1Click(Sender: TObject);
 begin
   CopyHexData;
@@ -1459,8 +1118,7 @@ begin
 end;
 
 procedure TFormEditor.VirtualStringTree1GetText(Sender: TBaseVirtualTree;
-  Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
-  var CellText: string);
+  Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
 var
   Data: PExplorerFieldPrt;
 begin
@@ -1495,14 +1153,6 @@ begin
   ClearP;
 
   ClearHexEditor(HexEditor);
-
-  with StatusBar1 do
-  begin
-    Panels[0].Text := 'Строка:';
-    Panels[1].Text := 'Столбец:';
-    Panels[2].Text := 'Вставка';
-    Panels[3].Text := 'Файл:';
-  end;
 end;
 
 procedure TFormEditor.CreateExpVar;
@@ -1670,9 +1320,6 @@ begin
     Scan := TScan.Create;
     Scan.FindInclude(S);
 
-    S := fSynMemo.Lines.Text;
-    Scan.BeginScan(S);
-
     ptrInclude := ListInclude;
     while ptrInclude <> nil do
     begin
@@ -1688,17 +1335,23 @@ begin
       ptrInclude := ptrInclude^.fNext;
     end;
 
+    Scan.FindVar(ProjectPath, FormOptions.EditINC.Text);
+    Scan.BeginScan(S);
+
     ptrImport := ListImport;
     while ptrImport <> nil do
     begin
-      NodeTemp := ExplorerVar.AddChild(varNodeDirImport);
-      ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
-      with ExpFieldVar^ do
+      if ptrImport^.fInc = nil then
       begin
-        fBeginChar := ptrImport^.fBeginChar;
-        fEndChar := ptrImport^.fEndChar;
-        NameNode := ptrImport^.fName + ' -> ' + ptrImport^.fData;
-        DirBol := False;
+        NodeTemp := ExplorerVar.AddChild(varNodeDirImport);
+        ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
+        with ExpFieldVar^ do
+        begin
+          fBeginChar := ptrImport^.fBeginChar;
+          fEndChar := ptrImport^.fEndChar;
+          NameNode := ptrImport^.fName + ' -> ' + ptrImport^.fData;
+          DirBol := False;
+        end;
       end;
       ptrImport := ptrImport^.fNext;
     end;
@@ -1706,14 +1359,17 @@ begin
     ptrInterface := ListInterface;
     while ptrInterface <> nil do
     begin
-      NodeTemp := ExplorerVar.AddChild(varNodeDirInterface);
-      ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
-      with ExpFieldVar^ do
+      if ptrInterface^.fInc = nil then
       begin
-        fBeginChar := ptrInterface^.fBeginChar;
-        fEndChar := ptrInterface^.fEndChar;
-        NameNode := ptrInterface^.fName;
-        DirBol := False;
+        NodeTemp := ExplorerVar.AddChild(varNodeDirInterface);
+        ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
+        with ExpFieldVar^ do
+        begin
+          fBeginChar := ptrInterface^.fBeginChar;
+          fEndChar := ptrInterface^.fEndChar;
+          NameNode := ptrInterface^.fName;
+          DirBol := False;
+        end;
       end;
       ptrInterface := ptrInterface^.fNext;
     end;
@@ -1721,15 +1377,17 @@ begin
     ptrType := ListType;
     while ptrType <> nil do
     begin
-      NodeTemp := ExplorerVar.AddChild(NodeDirType);
-      ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
-      with ExpFieldVar^ do
+      if ptrType^.fInc = nil then
       begin
-        fBeginChar := ptrType^.fBeginChar;
-        fEndChar := ptrType^.fEndChar;
-        NameNode := ptrType^.fName + ': ' + UpperCase(ptrType^.fTypeName) + ' '
-          + ptrType^.fTypeLong;
-        DirBol := False;
+        NodeTemp := ExplorerVar.AddChild(NodeDirType);
+        ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
+        with ExpFieldVar^ do
+        begin
+          fBeginChar := ptrType^.fBeginChar;
+          fEndChar := ptrType^.fEndChar;
+          NameNode := ptrType^.fName + ': ' + UpperCase(ptrType^.fTypeName) + ' ' + ptrType^.fTypeLong;
+          DirBol := False;
+        end;
       end;
       ptrType := ptrType^.fNext;
     end;
@@ -1737,14 +1395,17 @@ begin
     ptrMacro := ListMacro;
     while ptrMacro <> nil do
     begin
-      NodeTemp := ExplorerVar.AddChild(varNodeDirMacro);
-      ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
-      with ExpFieldVar^ do
+      if ptrMacro^.fInc = nil then
       begin
-        fBeginChar := ptrMacro^.fBeginChar;
-        fEndChar := ptrMacro^.fEndChar;
-        NameNode := ptrMacro^.fName;
-        DirBol := False;
+        NodeTemp := ExplorerVar.AddChild(varNodeDirMacro);
+        ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
+        with ExpFieldVar^ do
+        begin
+          fBeginChar := ptrMacro^.fBeginChar;
+          fEndChar := ptrMacro^.fEndChar;
+          NameNode := ptrMacro^.fName;
+          DirBol := False;
+        end;
       end;
       ptrMacro := ptrMacro^.fNext;
     end;
@@ -1752,14 +1413,17 @@ begin
     ptrStruct := ListStruct;
     while ptrStruct <> nil do
     begin
-      NodeTemp := ExplorerVar.AddChild(varNodeDirStruct);
-      ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
-      with ExpFieldVar^ do
+      if ptrStruct^.fInc = nil then
       begin
-        fBeginChar := ptrStruct^.fBeginChar;
-        fEndChar := ptrStruct^.fEndChar;
-        NameNode := ptrStruct^.fName;
-        DirBol := False;
+        NodeTemp := ExplorerVar.AddChild(varNodeDirStruct);
+        ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
+        with ExpFieldVar^ do
+        begin
+          fBeginChar := ptrStruct^.fBeginChar;
+          fEndChar := ptrStruct^.fEndChar;
+          NameNode := ptrStruct^.fName;
+          DirBol := False;
+        end;
       end;
       ptrStruct := ptrStruct^.fNext;
     end;
@@ -1767,15 +1431,18 @@ begin
     ptrProc := ListProc;
     while ptrProc <> nil do
     begin
-      NodeTemp := ExplorerVar.AddChild(varNodeDirProc);
-      ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
-      with ExpFieldVar^ do
+      if ptrProc^.fInc = nil then
       begin
-        fBeginChar := ptrProc^.fBeginChar;
-        fEndChar := ptrProc^.fEndChar;
-        NameNode := ptrProc^.fName;
-        // + '(' + ptrProc^.fData + ')';
-        DirBol := False;
+        NodeTemp := ExplorerVar.AddChild(varNodeDirProc);
+        ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
+        with ExpFieldVar^ do
+        begin
+          fBeginChar := ptrProc^.fBeginChar;
+          fEndChar := ptrProc^.fEndChar;
+          NameNode := ptrProc^.fName;
+          // + '(' + ptrProc^.fData + ')';
+          DirBol := False;
+        end;
       end;
       ptrProc := ptrProc^.fNext;
     end;
@@ -1783,14 +1450,17 @@ begin
     ptrLabel := ListLabel;
     while ptrLabel <> nil do
     begin
-      NodeTemp := ExplorerVar.AddChild(varNodeDirLabel);
-      ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
-      with ExpFieldVar^ do
+      if ptrLabel^.fInc = nil then
       begin
-        fBeginChar := ptrLabel^.fBeginChar;
-        fEndChar := ptrLabel^.fEndChar;
-        NameNode := ptrLabel^.fName;
-        DirBol := False;
+        NodeTemp := ExplorerVar.AddChild(varNodeDirLabel);
+        ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
+        with ExpFieldVar^ do
+        begin
+          fBeginChar := ptrLabel^.fBeginChar;
+          fEndChar := ptrLabel^.fEndChar;
+          NameNode := ptrLabel^.fName;
+          DirBol := False;
+        end;
       end;
       ptrLabel := ptrLabel^.fNext;
     end;
@@ -1798,14 +1468,17 @@ begin
     ptrConst := ListConst;
     while ptrConst <> nil do
     begin
-      NodeTemp := ExplorerVar.AddChild(varNodeDirConst);
-      ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
-      with ExpFieldVar^ do
+      if ptrConst^.fInc = nil then
       begin
-        fBeginChar := ptrConst^.fBeginChar;
-        fEndChar := ptrConst^.fEndChar;
-        NameNode := ptrConst^.fName + ' = ' + ptrConst^.fData;
-        DirBol := False;
+        NodeTemp := ExplorerVar.AddChild(varNodeDirConst);
+        ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
+        with ExpFieldVar^ do
+        begin
+          fBeginChar := ptrConst^.fBeginChar;
+          fEndChar := ptrConst^.fEndChar;
+          NameNode := ptrConst^.fName + ' = ' + ptrConst^.fData;
+          DirBol := False;
+        end;
       end;
       ptrConst := ptrConst^.fNext;
     end;
@@ -1813,14 +1486,17 @@ begin
     ptrVar := ListVar;
     while ptrVar <> nil do
     begin
-      NodeTemp := ExplorerVar.AddChild(NodeDirVar);
-      ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
-      with ExpFieldVar^ do
+      if ptrVar^.fInc = nil then
       begin
-        fBeginChar := ptrVar^.fBeginChar;
-        fEndChar := ptrVar^.fEndChar;
-        NameNode := ptrVar^.fName + ': ' + ptrVar^.fTypeLong;
-        DirBol := False;
+        NodeTemp := ExplorerVar.AddChild(NodeDirVar);
+        ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
+        with ExpFieldVar^ do
+        begin
+          fBeginChar := ptrVar^.fBeginChar;
+          fEndChar := ptrVar^.fEndChar;
+          NameNode := ptrVar^.fName + ': ' + ptrVar^.fTypeLong;
+          DirBol := False;
+        end;
       end;
       ptrVar := ptrVar^.fNext;
     end;
@@ -1864,10 +1540,7 @@ begin
   end;
 end;
 
-function TFormEditor.CreatePage(const FileName: AnsiString;
-  FindVar: Boolean = True): TMyTabSheet;
-var
-  S: AnsiString;
+function TFormEditor.CreatePage(const FileName: AnsiString; FindVar: Boolean = True): TMyTabSheet;
 begin
   Result := nil;
   if ExtractFileExt(FileName) = '' then
@@ -1875,41 +1548,30 @@ begin
 
   if not FileExists(FileName) then
   begin
-    S := 'Файл ' + ExtractFileName(FileName) + ' не найден!';
-    MessageBoxA(Handle, PAnsiChar(S), 'Ошибка!', MB_ICONERROR or MB_OK);
+    MessageBoxA(Handle, PAnsiChar(AnsiString('Р¤Р°Р№Р» ' + ExtractFileName(FileName) + ' РЅРµ РЅР°Р№РґРµРЅ!')), 'РћС€РёР±РєР°!', MB_ICONERROR or MB_OK);
     Exit;
   end;
 
-  MyTabSh := TMyTabSheet.Create(PageControl1, MyTabSheetImageList);
+  MyTabSh := TMyTabSheet.Create(PageControl1, MyTabSheetImageList, FormEditor.ImBookMark, FormEditor.PMenuEdit, FileName);
   MyTabSh.Parent := PageControl1;
-  MyTabSh.FilePath := FileName;
   PageControl1.ActivePage := MyTabSh;
   SynCompletion.Editor := MyTabSh.fSynMemo;
   SynHint.Editor := MyTabSh.fSynMemo;
   SynCompletionJump.Editor := MyTabSh.fSynMemo;
+  ActiveControl := MyTabSh.fSynMemo;
   TMySynAsmSyn(MyTabSh.fSynMemo.Highlighter).SelectWord := MyTabSh.SelectWord;
   MyTabSh.fSynMemo.Repaint;
   Result := MyTabSh;
 
-  if LowerCase(ExtractFileExt(MyTabSh.fFile)) = '.prt' then
+  if LowerCase(ExtractFileExt(MyTabSh.FilePath)) = '.prt' then
     MyTabSh.ImageIndex := 36
-  else if LowerCase(ExtractFileExt(MyTabSh.fFile)) = '.asm' then
+  else if LowerCase(ExtractFileExt(MyTabSh.FilePath)) = '.asm' then
     MyTabSh.ImageIndex := 37
-  else if LowerCase(ExtractFileExt(MyTabSh.fFile)) = '.inc' then
+  else if LowerCase(ExtractFileExt(MyTabSh.FilePath)) = '.inc' then
     MyTabSh.ImageIndex := 38;
 
   if FindVar then
-    PostMessage(FormEditor.Handle, WM_UPDATEEXPLORER_VAR, 0, 0);
-
-  with StatusBar1 do
-  begin
-    Panels[0].Text := 'Строка: ' +
-      IntToStr((PageControl1.ActivePage as TMyTabSheet).fSynMemo.CaretY);
-    Panels[1].Text := 'Столбец: ' +
-      IntToStr((PageControl1.ActivePage as TMyTabSheet).fSynMemo.CaretX);
-    Panels[2].Text := 'Вставка';
-    Panels[3].Text := 'Файл: ' + FileName;
-  end;
+    PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
 end;
 
 procedure TFormEditor.d1Click(Sender: TObject);
@@ -2010,7 +1672,7 @@ end;
 procedure TFormEditor.N121Click(Sender: TObject);
 begin
   if (PageControl1.ActivePage is TMyTabSheet) then
-    FileCompile((PageControl1.ActivePage as TMyTabSheet).fFile);
+    FileCompile((PageControl1.ActivePage as TMyTabSheet).FilePath);
 end;
 
 procedure TFormEditor.N94Click(Sender: TObject);
@@ -2036,45 +1698,28 @@ end;
 procedure TFormEditor.DestroyAllPage;
 var
   I: Integer;
-  S: AnsiString;
 begin
   for I := 1 to PageControl1.PageCount - 1 do
   begin
     PageControl1.ActivePage := PageControl1.Pages[1];
     MyTabSh := (PageControl1.ActivePage as TMyTabSheet);
 
-    S := 'Сохранить файл ' + MyTabSh.Caption + '?';
     if MyTabSh.Modifi then
     begin
       ActiveControl := MyTabSh.fSynMemo;
       SynCompletion.Editor := MyTabSh.fSynMemo;
       SynHint.Editor := MyTabSh.fSynMemo;
       SynCompletionJump.Editor := MyTabSh.fSynMemo;
-      TMySynAsmSyn(MyTabSh.fSynMemo.Highlighter).SelectWord :=
-        MyTabSh.SelectWord;
+      TMySynAsmSyn(MyTabSh.fSynMemo.Highlighter).SelectWord := MyTabSh.SelectWord;
       MyTabSh.fSynMemo.Repaint;
-      PostMessage(FormEditor.Handle, WM_UPDATEEXPLORER_VAR, 0, 0);
 
-      with StatusBar1 do
-      begin
-        Panels[0].Text := 'Строка: ' + IntToStr(MyTabSh.fSynMemo.CaretY);
-        Panels[1].Text := 'Столбец: ' + IntToStr(MyTabSh.fSynMemo.CaretX);
+      PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
 
-        if MyTabSh.fSynMemo.InsertMode then
-          Panels[2].Text := 'Вставка'
-        else
-          Panels[2].Text := 'Перезаписать';
-
-        Panels[3].Text := 'Файл: ' + MyTabSh.fFile;
-      end;
-
-      if MessageBoxA(Handle, PAnsiChar(S), 'Внимание!', MB_ICONQUESTION or
-        MB_YESNO) = mrYes then
+      if MessageBoxA(Handle, PAnsiChar(AnsiString('РЎРѕС…СЂР°РЅРёС‚СЊ С„Р°Р№Р» ' + MyTabSh.Caption + '?')), 'Р’РЅРёРјР°РЅРёРµ!', MB_ICONQUESTION or MB_YESNO) = mrYes then
         MyTabSh.SaveToFile;
     end;
 
-    S := MyTabSh.fFile;
-    AddLastFiles(S);
+    AddLastFiles(MyTabSh.FilePath);
     MyTabSh.Free;
   end;
 
@@ -2180,10 +1825,9 @@ begin
     end;
 end;
 
-procedure TFormEditor.ExplorerProjectKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
+procedure TFormEditor.ExplorerProjectKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
-  if Key = 46 then
+  if Key = VK_DELETE then
     N50Click(nil);
 end;
 
@@ -2213,7 +1857,7 @@ procedure TFormEditor.ExplorerProjectNewText(Sender: TBaseVirtualTree;
       if Str = Str2 then
       begin
         PageControl1.Pages[I].Caption := ExtractFileName(NewName);
-        (PageControl1.Pages[I] as TMyTabSheet).fFile := NewName;
+        (PageControl1.Pages[I] as TMyTabSheet).FilePath := NewName;
         Break;
       end;
     end;
@@ -2302,25 +1946,15 @@ end;
 procedure TFormEditor.ExplorerVarDblClick(Sender: TObject);
 var
   Data: PExplorerFieldVar;
-  I: Integer;
 begin
-  if (not Assigned(ExplorerVar.FocusedNode)) or
-    (not(PageControl1.ActivePage is TMyTabSheet)) then
+  if (not Assigned(ExplorerVar.FocusedNode)) or (not(PageControl1.ActivePage is TMyTabSheet)) then
     Exit;
 
   Data := ExplorerVar.GetNodeData(ExplorerVar.FocusedNode);
   if (Data = nil) or (Data^.DirBol) then
     Exit;
 
-  I := TMyTabSheet(PageControl1.ActivePage).fSynMemo.CharIndexToRowCol
-    (Data^.fBeginChar).Line;
-  TMyTabSheet(PageControl1.ActivePage).fSynMemo.CaretY := I - 1;
-  TMyTabSheet(PageControl1.ActivePage).fSynMemo.CaretY := I;
-  TMyTabSheet(PageControl1.ActivePage).fSynMemo.GotoLineAndCenter(I);
-
-  TMyTabSheet(PageControl1.ActivePage).fSynMemo.SelStart := Data^.fBeginChar;
-  TMyTabSheet(PageControl1.ActivePage).fSynMemo.SelEnd := Data^.fEndChar;
-
+  TMyTabSheet(PageControl1.ActivePage).GotoVar(Data^.fBeginChar, Data^.fEndChar);
   ActiveControl := TMyTabSheet(PageControl1.ActivePage).fSynMemo;
 end;
 
@@ -2382,8 +2016,7 @@ begin
   CellText := Data^.NameNode;
 end;
 
-procedure TFormEditor.FileCompile(const FileName: AnsiString;
-  Run: Boolean = False);
+procedure TFormEditor.FileCompile(const FileName: AnsiString; Run: Boolean = False);
 var
   ErrLine: Integer;
   Str, Str2, S: AnsiString;
@@ -2395,23 +2028,19 @@ begin
     Exit;
   if not FileExists(CompilerFASM) then
   begin
-    MessageBoxA(Handle, 'Компилятор FASM не найден. ' +
-      'Проверти путь в настройках программы!', 'Ошибка!',
-      MB_ICONERROR or MB_OK);
+    MessageBoxA(Handle, 'РљРѕРјРїРёР»СЏС‚РѕСЂ FASM РЅРµ РЅР°Р№РґРµРЅ. РџСЂРѕРІРµСЂС‚Рё РїСѓС‚СЊ РІ РЅР°СЃС‚СЂРѕР№РєР°С… РїСЂРѕРіСЂР°РјРјС‹!', 'РћС€РёР±РєР°!', MB_ICONERROR or MB_OK);
     Exit;
   end;
 
   if (ProgRun) or (DBGRun) then
-    if (MessageBoxA(Handle, 'Программа запущена. Закрыть?', 'Внимание!',
-      MB_ICONQUESTION or MB_YESNO) = mrYes) then
+    if (MessageBoxA(Handle, 'РџСЂРѕРіСЂР°РјРјР° Р·Р°РїСѓС‰РµРЅР°. Р—Р°РєСЂС‹С‚СЊ?', 'Р’РЅРёРјР°РЅРёРµ!', MB_ICONQUESTION or MB_YESNO) = mrYes) then
       CloseProgAndDBG
     else
       Exit;
 
   SaveAll;
   Memo1.Lines.Clear;
-  Memo1.Lines.Add(Compile('"' + CompilerFASM + '"' + '"' + FileName + '"',
-    ExtractFilePath(FileName)));
+  Memo1.Lines.Add(Compile('"' + CompilerFASM + '"' + '"' + FileName + '"', ExtractFilePath(FileName)));
 
   if (Pos('error', Memo1.Text) > 0) { and (Memo1.Lines.Count > 2) } then
   begin
@@ -2426,8 +2055,7 @@ begin
     Str2 := Copy(Str, Pos('[', Str) + 1, Length(Str));
     Str := Copy(Str2, 1, Pos(']', Str2) - 1);
 
-    Str2 := Copy(Memo1.Lines.Strings[J], 1,
-      Pos('[', Memo1.Lines.Strings[J]) - 1);
+    Str2 := Copy(Memo1.Lines.Strings[J], 1, Pos('[', Memo1.Lines.Strings[J]) - 1);
 
     Str2 := GetFullPath(Str2);
     ZeroMemory(@F, 256);
@@ -2483,8 +2111,7 @@ begin
   Memo1.Repaint;
 end;
 
-function TFormEditor.FindPage(const FindName: AnsiString;
-  FindVar: Boolean = True): Boolean;
+function TFormEditor.FindPage(const FindName: AnsiString; FindVar: Boolean = True): Boolean;
 var
   I: Integer;
   Str, Str2: AnsiString;
@@ -2494,7 +2121,7 @@ begin
 
   for I := 1 to PageControl1.PageCount - 1 do
   begin
-    Str2 := LowerCase(TMyTabSheet(PageControl1.Pages[I]).fFile);
+    Str2 := LowerCase(TMyTabSheet(PageControl1.Pages[I]).FilePath);
 
     if Str = Str2 then
     begin
@@ -2508,23 +2135,9 @@ begin
       SynCompletionJump.Editor := MyTabSh.fSynMemo;
 
       if FindVar then
-        PostMessage(FormEditor.Handle, WM_UPDATEEXPLORER_VAR, 0, 0);
+        PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
 
-      with StatusBar1 do
-      begin
-        Panels[0].Text := 'Строка: ' + IntToStr(MyTabSh.fSynMemo.CaretY);
-        Panels[1].Text := 'Столбец: ' + IntToStr(MyTabSh.fSynMemo.CaretX);
-
-        if (PageControl1.ActivePage as TMyTabSheet).fSynMemo.InsertMode then
-          Panels[2].Text := 'Вставка'
-        else
-          Panels[2].Text := 'Перезаписать';
-
-        Panels[3].Text := 'Файл: ' + FindName;
-      end;
-
-      TMySynAsmSyn(MyTabSh.fSynMemo.Highlighter).SelectWord :=
-        MyTabSh.SelectWord;
+      TMySynAsmSyn(MyTabSh.fSynMemo.Highlighter).SelectWord := MyTabSh.SelectWord;
       MyTabSh.fSynMemo.Repaint;
       Break;
     end;
@@ -2598,7 +2211,7 @@ begin
       ptrInclude := ptrInclude^.fNext;
     end;
     Scan.Free;
-    PostMessage(FormEditor.Handle, WM_UPDATEEXPLORER_VAR, 0, 0);
+    PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
   end;
   Temp.Free;
 end;
@@ -2611,13 +2224,12 @@ end;
 procedure TFormEditor.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
   // CanClose := False;
-  // if MessageBoxA(Handle, 'Выйти из FASM Editor?', 'Внимание!',
+  // if MessageBoxA(Handle, 'Р’С‹Р№С‚Рё РёР· FASM Editor?', 'Р’РЅРёРјР°РЅРёРµ!',
   // MB_ICONQUESTION or MB_YESNO) = mrYes then
   // CanClose := True;
 end;
 
-procedure TFormEditor.AppShowHint(var HintStr: string; var CanShow: Boolean;
-  var HintInfo: THintInfo);
+procedure TFormEditor.AppShowHint(var HintStr: string; var CanShow: Boolean; var HintInfo: THintInfo);
 var
   R: TRect;
 begin
@@ -2626,10 +2238,9 @@ begin
     ZeroMemory(@R, SizeOf(R));
 
     R := PageControl1.TabRect(ActPage);
-    if PtInRect(R, HintInfo.CursorPos) and
-      (PageControl1.Pages[ActPage] is TMyTabSheet) then
+    if PtInRect(R, HintInfo.CursorPos) and (PageControl1.Pages[ActPage] is TMyTabSheet) then
     begin
-      HintStr := TMyTabSheet(PageControl1.Pages[ActPage]).fFile;
+      HintStr := TMyTabSheet(PageControl1.Pages[ActPage]).FilePath;
       HintInfo.CursorRect := R;
     end;
   end;
@@ -2639,6 +2250,10 @@ procedure TFormEditor.FormCreate(Sender: TObject);
 var
   F: TFileStream;
 begin
+  // https://stackoverflow.com/a/18725247
+  // Ctrl+/
+  N60.ShortCut := 16575;
+
   ExplorerProject.NodeDataSize := SizeOf(TExplorerFieldPtr);
   ExplorerVar.NodeDataSize := SizeOf(TExplorerFieldVar);
   Vis(False);
@@ -2649,8 +2264,7 @@ begin
   if not FileExists(ExtractFilePath(ParamStr(0)) + SynCompletionParam) then
     Exit;
 
-  F := TFileStream.Create(ExtractFilePath(ParamStr(0)) + SynCompletionParam,
-    fmOpenRead);
+  F := TFileStream.Create(ExtractFilePath(ParamStr(0)) + SynCompletionParam, fmOpenRead);
   F.Read(RecOpt, SizeOf(RecOpt));
   F.Free;
 
@@ -2676,8 +2290,7 @@ begin
   RecOpt.fH := SynCompletion.NbLinesInWindow;
   RecOpt.fW := SynCompletion.Width;
 
-  F := TFileStream.Create(ExtractFilePath(ParamStr(0)) + SynCompletionParam,
-    fmCreate);
+  F := TFileStream.Create(ExtractFilePath(ParamStr(0)) + SynCompletionParam, fmCreate);
   F.Write(RecOpt, SizeOf(RecOpt));
   F.Free;
 end;
@@ -2704,23 +2317,6 @@ begin
   LoadLastFiles;
 end;
 
-function TFormEditor.GetFullPath(const Path: AnsiString): AnsiString;
-var
-  fName: PAnsiChar;
-  FPath: array [0 .. 255] of AnsiChar;
-  S: AnsiString;
-begin
-
-  ZeroMemory(@FPath, 255);
-  if ExtractFileDrive(Path) = '' then
-    S := 'C:\' + Trim(Path)
-  else
-    S := Trim(Path);
-
-  GetFullPathNameA(PAnsiChar(S), 255, @FPath, fName);
-  Result := StrPas(PAnsiChar(@FPath));
-end;
-
 procedure TFormEditor.HTML2Click(Sender: TObject);
 var
   FileName: string;
@@ -2730,8 +2326,7 @@ begin
     with (PageControl1.ActivePage as TMyTabSheet) do
     begin
       SaveDialogExport.Filter := SynExporterHTML.DefaultFilter;
-      SaveDialogExport.FileName := Copy(Caption, 1, Pos('.', Caption) - 1)
-        + '.html';
+      SaveDialogExport.FileName := Copy(Caption, 1, Pos('.', Caption) - 1) + '.html';
 
       if not SaveDialogExport.Execute then
         Exit;
@@ -2741,22 +2336,7 @@ begin
       if ExtractFileExt(FileName) = '' then
         FileName := FileName + '.html';
 
-      SynExporterHTML.Title := Caption;
-      SynExporterHTML.Color := fSynMemo.Color;
-      SynExporterHTML.Font := fSynMemo.Font;
-      SynExporterHTML.ExportAsText := True;
-      SynExporterHTML.Highlighter := fSynMemo.Highlighter;
-
-      if fSynMemo.SelText <> '' then
-      begin
-        Src := TStringList.Create;
-        Src.Text := fSynMemo.SelText;
-        SynExporterHTML.ExportAll(Src);
-        Src.Free;
-      end
-      else
-        SynExporterHTML.ExportAll(fSynMemo.Lines);
-
+      ExportHtml(SynExporterHTML);
       SynExporterHTML.SaveToFile(FileName);
     end;
 end;
@@ -2778,8 +2358,7 @@ begin
 {$I+}
     if IOResult <> 0 then
     begin
-      MessageBoxA(Handle, 'Произошла ошибка при создании файла.', 'Ошибка!',
-        MB_ICONERROR or MB_OK);
+      MessageBoxA(Handle, 'РџСЂРѕРёР·РѕС€Р»Р° РѕС€РёР±РєР° РїСЂРё СЃРѕР·РґР°РЅРёРё С„Р°Р№Р»Р°.', 'РћС€РёР±РєР°!', MB_ICONERROR or MB_OK);
       Exit;
     end
     else
@@ -2830,7 +2409,7 @@ begin
 
   if S = '' then
   begin
-    MessageBoxA(Handle, 'Нет данных для сохранения.', 'Ошибка!', MB_ICONERROR or MB_OK);
+    MessageBoxA(Handle, 'РќРµС‚ РґР°РЅРЅС‹С… РґР»СЏ СЃРѕС…СЂР°РЅРµРЅРёСЏ!', 'РћС€РёР±РєР°!', MB_ICONERROR or MB_OK);
     Exit;
   end;
 
@@ -2850,7 +2429,7 @@ begin
 {$I+}
   if IOResult <> 0 then
   begin
-    MessageBoxA(Handle, 'Произошла ошибка при создании файла.', 'Ошибка!', MB_ICONERROR or MB_OK);
+    MessageBoxA(Handle, 'РџСЂРѕРёР·РѕС€Р»Р° РѕС€РёР±РєР° РїСЂРё СЃРѕР·РґР°РЅРёРё С„Р°Р№Р»Р°.', 'РћС€РёР±РєР°!', MB_ICONERROR or MB_OK);
   end
   else
   begin
@@ -2861,12 +2440,24 @@ end;
 
 procedure TFormEditor.N103Click(Sender: TObject);
 begin
-  AddSeparator(1);
+  if (PageControl1.ActivePage is TMyTabSheet) then
+  begin
+    with (PageControl1.ActivePage as TMyTabSheet) do
+      AddSeparator(1);
+
+    PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
+  end;
 end;
 
 procedure TFormEditor.N104Click(Sender: TObject);
 begin
-  AddSeparator(2);
+  if (PageControl1.ActivePage is TMyTabSheet) then
+  begin
+    with (PageControl1.ActivePage as TMyTabSheet) do
+      AddSeparator(2);
+
+    PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
+  end;
 end;
 
 procedure TFormEditor.N105Click(Sender: TObject);
@@ -2899,7 +2490,7 @@ begin
   if (PageControl1.ActivePage is TMyTabSheet) then
     (PageControl1.ActivePage as TMyTabSheet).fSynMemo.Undo;
 
-  PostMessage(FormEditor.Handle, WM_UPDATEEXPLORER_VAR, 0, 0);
+  PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
 end;
 
 procedure TFormEditor.N18Click(Sender: TObject);
@@ -2907,7 +2498,7 @@ begin
   if (PageControl1.ActivePage is TMyTabSheet) then
     (PageControl1.ActivePage as TMyTabSheet).fSynMemo.Redo;
 
-  PostMessage(FormEditor.Handle, WM_UPDATEEXPLORER_VAR, 0, 0);
+  PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
 end;
 
 procedure TFormEditor.N20Click(Sender: TObject);
@@ -2915,7 +2506,7 @@ begin
   SendMessage(ActiveControl.Handle, WM_CUT, 0, 0);
 
   if ActiveControl is TSynMemo then
-    PostMessage(FormEditor.Handle, WM_UPDATEEXPLORER_VAR, 0, 0);
+    PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
 end;
 
 procedure TFormEditor.N21Click(Sender: TObject);
@@ -2928,7 +2519,7 @@ begin
   SendMessage(ActiveControl.Handle, WM_PASTE, 0, 0);
 
   if ActiveControl is TSynMemo then
-    PostMessage(FormEditor.Handle, WM_UPDATEEXPLORER_VAR, 0, 0);
+    PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
 end;
 
 procedure TFormEditor.N23Click(Sender: TObject);
@@ -2937,8 +2528,7 @@ begin
     Exit;
   with FormFindInFile do
   begin
-    EditFindText.Text := (PageControl1.ActivePage as TMyTabSheet)
-      .fSynMemo.SelText;
+    EditFindText.Text := (PageControl1.ActivePage as TMyTabSheet).SelectedText;
     ShowModal;
     if (ModalResult <> mrOk) or (EditFindText.Text = '') then
       Exit;
@@ -2959,12 +2549,10 @@ begin
     with FormSearchReplaceText do
     begin
       ShowModal;
-      if (EditSearchText.Text <> '') and (EditReplaceText.Text <> '') and
-        (ModalResult = mrOk) then
+      if (EditSearchText.Text <> '') and (EditReplaceText.Text <> '') and (ModalResult = mrOk) then
       begin
-        (PageControl1.ActivePage as TMyTabSheet)
-          .SearchReplaceText(EditSearchText.Text, EditReplaceText.Text);
-        PostMessage(FormEditor.Handle, WM_UPDATEEXPLORER_VAR, 0, 0);
+        (PageControl1.ActivePage as TMyTabSheet).SearchReplaceText(EditSearchText.Text, EditReplaceText.Text);
+        PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
       end;
     end;
 end;
@@ -3061,18 +2649,14 @@ end;
 procedure TFormEditor.N37Click(Sender: TObject);
 var
   I: Integer;
-  S: AnsiString;
 begin
   if (PageControl1.ActivePage is TMyTabSheet) then
   begin
     MyTabSh := (PageControl1.ActivePage as TMyTabSheet);
-    S := 'Сохранить файл ' + MyTabSh.Caption + '?';
     if MyTabSh.Modifi then
-      if MessageBoxA(Handle, PAnsiChar(S), 'Внимание!', MB_ICONQUESTION or
-        MB_YESNO) = mrYes then
+      if MessageBoxA(Handle, PAnsiChar(AnsiString('РЎРѕС…СЂР°РЅРёС‚СЊ С„Р°Р№Р» ' + MyTabSh.Caption + '?')), 'Р’РЅРёРјР°РЅРёРµ!', MB_ICONQUESTION or MB_YESNO) = mrYes then
         MyTabSh.SaveToFile;
 
-    S := MyTabSh.fFile;
     I := PageControl1.ActivePageIndex;
     MyTabSh.Free;
     PageControl1.ActivePageIndex := I - 1;
@@ -3086,39 +2670,17 @@ begin
       SynHint.Editor := MyTabSh.fSynMemo;
       SynCompletionJump.Editor := MyTabSh.fSynMemo;
 
-      TMySynAsmSyn(MyTabSh.fSynMemo.Highlighter).SelectWord :=
-        MyTabSh.SelectWord;
+      TMySynAsmSyn(MyTabSh.fSynMemo.Highlighter).SelectWord := MyTabSh.SelectWord;
       MyTabSh.fSynMemo.Repaint;
 
-      PostMessage(FormEditor.Handle, WM_UPDATEEXPLORER_VAR, 0, 0);
-
-      with StatusBar1 do
-      begin
-        Panels[0].Text := 'Строка: ' + IntToStr(MyTabSh.fSynMemo.CaretY);
-        Panels[1].Text := 'Столбец: ' + IntToStr(MyTabSh.fSynMemo.CaretX);
-
-        if MyTabSh.fSynMemo.InsertMode then
-          Panels[2].Text := 'Вставка'
-        else
-          Panels[2].Text := 'Перезаписать';
-
-        Panels[3].Text := 'Файл: ' + MyTabSh.fFile;
-      end;
+      PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
     end
     else
     begin
       ExplorerVar.Clear;
-
-      with StatusBar1 do
-      begin
-        Panels[0].Text := 'Строка:';
-        Panels[1].Text := 'Столбец:';
-        Panels[2].Text := 'Вставка';
-        Panels[3].Text := 'Файл:';
-      end;
     end;
 
-    AddLastFiles(S);
+    AddLastFiles(MyTabSh.FilePath);
     LoadLastFiles;
   end;
 end;
@@ -3135,8 +2697,7 @@ var
   I: Integer;
 begin
   OpenFileDialog.FileName := '';
-  OpenFileDialog.Filter :=
-    'Project (*.ptr)|*.prt|Source (*.asm)|*.asm|Include (*.inc)|*.inc';
+  OpenFileDialog.Filter := 'Project (*.ptr)|*.prt|Source (*.asm)|*.asm|Include (*.inc)|*.inc';
 
   if OpenFileDialog.Execute then
     for I := 0 to OpenFileDialog.Files.Count - 1 do
@@ -3144,8 +2705,7 @@ begin
       F := OpenFileDialog.Files.Strings[I];
       if not FileExists(F) then
       begin
-        MessageBoxA(Handle, PAnsiChar('Файл ' + F + ' не найден!'), 'Ошибка!',
-          MB_ICONERROR or MB_OK);
+        MessageBoxA(Handle, PAnsiChar(AnsiString('Р¤Р°Р№Р» ' + F + ' РЅРµ РЅР°Р№РґРµРЅ!')), 'РћС€РёР±РєР°!', MB_ICONERROR or MB_OK);
         Continue;
       end;
 
@@ -3178,8 +2738,7 @@ begin
     FileAddName := OpenFileDialog.Files.Strings[I];
     if not FileExists(FileAddName) then
     begin
-      MessageBoxA(Handle, PAnsiChar('Файл ' + FileAddName + ' не найден!'),
-        'Ошибка!', MB_ICONERROR or MB_OK);
+      MessageBoxA(Handle, PAnsiChar(AnsiString('Р¤Р°Р№Р» ' + FileAddName + ' РЅРµ РЅР°Р№РґРµРЅ!')), 'РћС€РёР±РєР°!', MB_ICONERROR or MB_OK);
       Continue;
     end;
 
@@ -3191,9 +2750,7 @@ begin
       if FindNode(ExtractFileName(FileAddName), True) then
       begin
         NodeTemp := nil;
-        MessageBoxA(Handle,
-          PAnsiChar('Файл ' + AnsiString(ExtractFileName(FileAddName)) +
-          ' уже добавлен в проект!'), 'Внимание!', MB_ICONSTOP or MB_OK);
+        MessageBoxA(Handle, PAnsiChar(AnsiString('Р¤Р°Р№Р» ' + ExtractFileName(FileAddName) + ' СѓР¶Рµ РґРѕР±Р°РІР»РµРЅ РІ РїСЂРѕРµРєС‚!')), 'Р’РЅРёРјР°РЅРёРµ!', MB_ICONSTOP or MB_OK);
       end
       else
       begin
@@ -3205,9 +2762,7 @@ begin
       if FindNode(ExtractFileName(FileAddName), False) then
       begin
         NodeTemp := nil;
-        MessageBoxA(Handle,
-          PAnsiChar('Файл ' + AnsiString(ExtractFileName(FileAddName)) +
-          ' уже добавлен в проект!'), 'Внимание!', MB_ICONSTOP or MB_OK);
+        MessageBoxA(Handle, PAnsiChar(AnsiString('Р¤Р°Р№Р» ' + ExtractFileName(FileAddName) + ' СѓР¶Рµ РґРѕР±Р°РІР»РµРЅ РІ РїСЂРѕРµРєС‚!')), 'Р’РЅРёРјР°РЅРёРµ!', MB_ICONSTOP or MB_OK);
       end
       else
       begin
@@ -3261,23 +2816,16 @@ procedure TFormEditor.N50Click(Sender: TObject);
   procedure FindAndDeletePage(const FindName: AnsiString);
   var
     I: Integer;
-    Str, Str2: AnsiString;
     S: AnsiString;
   begin
-    Str := LowerCase(FindName);
-
     for I := 1 to PageControl1.PageCount - 1 do
     begin
-      Str2 := LowerCase(TMyTabSheet(PageControl1.Pages[I]).fFile);
-
-      if Str = Str2 then
+      if LowerCase(FindName) = LowerCase(TMyTabSheet(PageControl1.Pages[I]).FilePath) then
       begin
         if (PageControl1.Pages[I] as TMyTabSheet).Modifi then
         begin
-          S := 'Сохранить файл ' + (PageControl1.Pages[I] as TMyTabSheet)
-            .Caption + '?';
-          if MessageBoxA(Handle, PAnsiChar(S), 'Внимание!', MB_ICONQUESTION or
-            MB_YESNO) = mrYes then
+          S := 'РЎРѕС…СЂР°РЅРёС‚СЊ С„Р°Р№Р» ' + (PageControl1.Pages[I] as TMyTabSheet).Caption + '?';
+          if MessageBoxA(Handle, PAnsiChar(S), 'Р’РЅРёРјР°РЅРёРµ!', MB_ICONQUESTION or MB_YESNO) = mrYes then
             (PageControl1.Pages[I] as TMyTabSheet).SaveToFile;
         end;
 
@@ -3291,15 +2839,12 @@ procedure TFormEditor.N50Click(Sender: TObject);
 var
   Data: PExplorerFieldPrt;
   I: Integer;
-  S: AnsiString;
 begin
   if ExplorerProject.FocusedNode = nil then
     Exit;
 
   Data := ExplorerProject.GetNodeData(ExplorerProject.FocusedNode);
-  S := 'Удалить файл ' + Data^.FilePath + ' из проекта?';
-  if MessageBoxA(Handle, PAnsiChar(S), 'Внимание!', MB_ICONQUESTION or MB_YESNO)
-    = mrYes then
+  if MessageBoxA(Handle, PAnsiChar(AnsiString('РЈРґР°Р»РёС‚СЊ С„Р°Р№Р» ' + Data^.FilePath + ' РёР· РїСЂРѕРµРєС‚Р°?')), 'Р’РЅРёРјР°РЅРёРµ!', MB_ICONQUESTION or MB_YESNO) = mrYes then
   begin
     FindAndDeletePage(Data^.FilePath);
     ExplorerProject.DeleteSelectedNodes;
@@ -3325,9 +2870,8 @@ var
 begin
   if (PageControl1.ActivePage is TMyTabSheet) then
   begin
-    S := (PageControl1.ActivePage as TMyTabSheet).fFile;
-    ShellExecuteA(Handle, 'OPEN', 'EXPLORER', PAnsiChar('/select, ' + S), '',
-      SW_NORMAL);
+    S := (PageControl1.ActivePage as TMyTabSheet).FilePath;
+    ShellExecuteA(Handle, 'OPEN', 'EXPLORER', PAnsiChar('/select, ' + S), '', SW_NORMAL);
   end;
 end;
 
@@ -3337,73 +2881,58 @@ begin
 end;
 
 procedure TFormEditor.N60Click(Sender: TObject);
-var
-  I, Len: Integer;
-  InString, OutString: TStringList;
-  Str: string;
-  A, B: TBufferCoord;
 begin
   if (PageControl1.ActivePage is TMyTabSheet) then
+  begin
     with (PageControl1.ActivePage as TMyTabSheet) do
-    begin
-      InString := TStringList.Create;
-      OutString := TStringList.Create;
-      InString.Text := fSynMemo.SelText;
-      Len := fSynMemo.SelLength;
+      AddOrDelComment();
 
-      A := fSynMemo.BlockBegin;
-      B := fSynMemo.BlockEnd;
-
-      for I := 0 to InString.Count - 1 do
-      begin
-        Str := TrimLeft(InString.Strings[I]);
-        if Str = '' then
-        begin
-          OutString.Add(';' + InString.Strings[I]);
-          Inc(Len);
-        end
-        else if Str[1] = ';' then
-        begin
-          Str := TrimLeft(InString.Strings[I]);
-          Str := Copy(Str, 2, Length(Str));
-          OutString.Add(Str);
-          Dec(Len);
-        end
-        else
-        begin
-          OutString.Add(';' + InString.Strings[I]);
-          Inc(Len);
-        end;
-      end;
-
-      Str := Copy(OutString.Text, 1, Len);
-      fSynMemo.SelText := Str;
-      fSynMemo.BlockBegin := A;
-      fSynMemo.BlockEnd := B;
-      InString.Free;
-      OutString.Free;
-      PostMessage(FormEditor.Handle, WM_UPDATEEXPLORER_VAR, 0, 0);
-    end;
+    PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
+  end;
 end;
 
 procedure TFormEditor.N66Click(Sender: TObject);
 begin
-  AddOrDelSpace;
+  if (PageControl1.ActivePage is TMyTabSheet) then
+  begin
+    with (PageControl1.ActivePage as TMyTabSheet) do
+      AddOrDelSpace();
+
+    PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
+  end;
 end;
 
 procedure TFormEditor.N67Click(Sender: TObject);
 begin
-  AddOrDelSpace(False);
+  if (PageControl1.ActivePage is TMyTabSheet) then
+  begin
+    with (PageControl1.ActivePage as TMyTabSheet) do
+      AddOrDelSpace(False);
+
+    PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
+  end;
 end;
 
 procedure TFormEditor.N72Click(Sender: TObject);
 begin
-  RegisterSymbol;
+  if (PageControl1.ActivePage is TMyTabSheet) then
+    with (PageControl1.ActivePage as TMyTabSheet) do
+    begin
+      RegisterSymbol();
+
+      PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
+    end;
 end;
 
 procedure TFormEditor.N73Click(Sender: TObject);
 begin
-  RegisterSymbol(False);
+  if (PageControl1.ActivePage is TMyTabSheet) then
+    with (PageControl1.ActivePage as TMyTabSheet) do
+    begin
+      RegisterSymbol(False);
+
+      PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
+    end;
 end;
 
 procedure TFormEditor.N78Click(Sender: TObject);
@@ -3493,7 +3022,7 @@ begin
       S := GetFullPath(S2);
       if not FileExists(S) then
       begin
-        S := ExtractFilePath((PageControl1.ActivePage as TMyTabSheet).fFile);
+        S := ExtractFilePath((PageControl1.ActivePage as TMyTabSheet).FilePath);
         S := GetFullPath(S + Trim(S2));
         if not FileExists(S) then
         begin
@@ -3509,31 +3038,29 @@ begin
   end;
 end;
 
-procedure TFormEditor.N86Click(Sender: TObject);
+procedure TFormEditor.GotoVar(VarName: string);
 var
-  S, S2: string;
+  S2: string;
   Tab: TMyTabSheet;
 begin
   if (PageControl1.ActivePage is TMyTabSheet) then
     with (PageControl1.ActivePage as TMyTabSheet) do
     begin
-      S := fSynMemo.WordAtCursor;
-      if S = '' then
+      if VarName = '' then
         Exit;
 
       S2 := fSynMemo.Text;
       Scan := TScan.Create;
       Scan.FindInclude(S2);
-      FindVar;
+      Scan.FindVar(ProjectPath, FormOptions.EditINC.Text);
       Scan.BeginScan(S2);
 
-      case FindVarNameAndPath(S) of
+      case Scan.FindVarNameAndPath(VarName) of
         tkImport:
           begin
             if ptrImport^.FInc = nil then
             begin
-              fSynMemo.SelStart := ptrImport^.fBeginChar;
-              fSynMemo.SelEnd := ptrImport^.fEndChar;
+              SelectText(ptrImport^.fBeginChar, ptrImport^.fEndChar);
             end
             else
             begin
@@ -3542,8 +3069,7 @@ begin
               else
                 Tab := CreatePage(ptrImport^.FInc^.fName);
 
-              Tab.fSynMemo.SelStart := ptrImport^.fBeginChar;
-              Tab.fSynMemo.SelEnd := ptrImport^.fEndChar;
+              Tab.SelectText(ptrImport^.fBeginChar, ptrImport^.fEndChar);
             end;
           end;
 
@@ -3551,8 +3077,7 @@ begin
           begin
             if ptrInterface^.FInc = nil then
             begin
-              fSynMemo.SelStart := ptrInterface^.fBeginChar;
-              fSynMemo.SelEnd := ptrInterface^.fEndChar;
+              SelectText(ptrInterface^.fBeginChar, ptrInterface^.fEndChar);
             end
             else
             begin
@@ -3561,8 +3086,7 @@ begin
               else
                 Tab := CreatePage(ptrInterface^.FInc^.fName);
 
-              Tab.fSynMemo.SelStart := ptrInterface^.fBeginChar;
-              Tab.fSynMemo.SelEnd := ptrInterface^.fEndChar;
+              Tab.SelectText(ptrInterface^.fBeginChar, ptrInterface^.fEndChar);
             end;
           end;
 
@@ -3570,8 +3094,7 @@ begin
           begin
             if ptrMacro^.FInc = nil then
             begin
-              fSynMemo.SelStart := ptrMacro^.fBeginChar;
-              fSynMemo.SelEnd := ptrMacro^.fEndChar;
+              SelectText(ptrMacro^.fBeginChar, ptrMacro^.fEndChar);
             end
             else
             begin
@@ -3580,8 +3103,7 @@ begin
               else
                 Tab := CreatePage(ptrMacro^.FInc^.fName);
 
-              Tab.fSynMemo.SelStart := ptrMacro^.fBeginChar;
-              Tab.fSynMemo.SelEnd := ptrMacro^.fEndChar;
+              Tab.SelectText(ptrMacro^.fBeginChar, ptrMacro^.fEndChar);
             end;
           end;
 
@@ -3589,8 +3111,7 @@ begin
           begin
             if ptrStruct^.FInc = nil then
             begin
-              fSynMemo.SelStart := ptrStruct^.fBeginChar;
-              fSynMemo.SelEnd := ptrStruct^.fEndChar;
+              SelectText(ptrStruct^.fBeginChar, ptrStruct^.fEndChar);
             end
             else
             begin
@@ -3599,8 +3120,7 @@ begin
               else
                 Tab := CreatePage(ptrStruct^.FInc^.fName);
 
-              Tab.fSynMemo.SelStart := ptrStruct^.fBeginChar;
-              Tab.fSynMemo.SelEnd := ptrStruct^.fEndChar;
+              Tab.SelectText(ptrStruct^.fBeginChar, ptrStruct^.fEndChar);
             end;
           end;
 
@@ -3608,8 +3128,7 @@ begin
           begin
             if ptrStruc^.FInc = nil then
             begin
-              fSynMemo.SelStart := ptrStruc^.fBeginChar;
-              fSynMemo.SelEnd := ptrStruc^.fEndChar;
+              SelectText(ptrStruc^.fBeginChar, ptrStruc^.fEndChar);
             end
             else
             begin
@@ -3618,8 +3137,7 @@ begin
               else
                 Tab := CreatePage(ptrStruc^.FInc^.fName);
 
-              Tab.fSynMemo.SelStart := ptrStruc^.fBeginChar;
-              Tab.fSynMemo.SelEnd := ptrStruc^.fEndChar;
+              Tab.SelectText(ptrStruc^.fBeginChar, ptrStruc^.fEndChar);
             end;
           end;
 
@@ -3627,8 +3145,7 @@ begin
           begin
             if ptrProc^.FInc = nil then
             begin
-              fSynMemo.SelStart := ptrProc^.fBeginChar;
-              fSynMemo.SelEnd := ptrProc^.fEndChar;
+              SelectText(ptrProc^.fBeginChar, ptrProc^.fEndChar);
             end
             else
             begin
@@ -3637,17 +3154,15 @@ begin
               else
                 Tab := CreatePage(ptrProc^.FInc^.fName);
 
-              Tab.fSynMemo.SelStart := ptrProc^.fBeginChar;
-              Tab.fSynMemo.SelEnd := ptrProc^.fEndChar;
+              Tab.SelectText(ptrProc^.fBeginChar, ptrProc^.fEndChar);
             end;
           end;
 
         tkVar:
           begin
-            if ptrVar^.FInc = nil then
+           if ptrVar^.FInc = nil then
             begin
-              fSynMemo.SelStart := ptrVar^.fBeginChar;
-              fSynMemo.SelEnd := ptrVar^.fEndChar;
+              SelectText(ptrVar^.fBeginChar, ptrVar^.fEndChar);
             end
             else
             begin
@@ -3656,8 +3171,7 @@ begin
               else
                 Tab := CreatePage(ptrVar^.FInc^.fName);
 
-              Tab.fSynMemo.SelStart := ptrVar^.fBeginChar;
-              Tab.fSynMemo.SelEnd := ptrVar^.fEndChar;
+              Tab.SelectText(ptrVar^.fBeginChar, ptrVar^.fEndChar);
             end;
           end;
 
@@ -3665,8 +3179,7 @@ begin
           begin
             if ptrType^.FInc = nil then
             begin
-              fSynMemo.SelStart := ptrType^.fBeginChar;
-              fSynMemo.SelEnd := ptrType^.fEndChar;
+              SelectText(ptrType^.fBeginChar, ptrType^.fEndChar);
             end
             else
             begin
@@ -3675,8 +3188,7 @@ begin
               else
                 Tab := CreatePage(ptrType^.FInc^.fName);
 
-              Tab.fSynMemo.SelStart := ptrType^.fBeginChar;
-              Tab.fSynMemo.SelEnd := ptrType^.fEndChar;
+              Tab.SelectText(ptrType^.fBeginChar, ptrType^.fEndChar);
             end;
           end;
 
@@ -3684,8 +3196,7 @@ begin
           begin
             if ptrLabel^.FInc = nil then
             begin
-              fSynMemo.SelStart := ptrLabel^.fBeginChar;
-              fSynMemo.SelEnd := ptrLabel^.fEndChar;
+              SelectText(ptrLabel^.fBeginChar, ptrLabel^.fEndChar);
             end
             else
             begin
@@ -3694,8 +3205,7 @@ begin
               else
                 Tab := CreatePage(ptrLabel^.FInc^.fName);
 
-              Tab.fSynMemo.SelStart := ptrLabel^.fBeginChar;
-              Tab.fSynMemo.SelEnd := ptrLabel^.fEndChar;
+              Tab.SelectText(ptrLabel^.fBeginChar, ptrLabel^.fEndChar);
             end;
           end;
 
@@ -3703,8 +3213,7 @@ begin
           begin
             if ptrConst^.FInc = nil then
             begin
-              fSynMemo.SelStart := ptrConst^.fBeginChar;
-              fSynMemo.SelEnd := ptrConst^.fEndChar;
+              SelectText(ptrConst^.fBeginChar, ptrConst^.fEndChar);
             end
             else
             begin
@@ -3713,8 +3222,7 @@ begin
               else
                 Tab := CreatePage(ptrConst^.FInc^.fName);
 
-              Tab.fSynMemo.SelStart := ptrConst^.fBeginChar;
-              Tab.fSynMemo.SelEnd := ptrConst^.fEndChar;
+              Tab.SelectText(ptrConst^.fBeginChar, ptrConst^.fEndChar);
             end;
           end;
       end;
@@ -3724,9 +3232,14 @@ begin
     end;
 end;
 
+procedure TFormEditor.N86Click(Sender: TObject);
+begin
+  if (PageControl1.ActivePage is TMyTabSheet) then
+    with (PageControl1.ActivePage as TMyTabSheet) do
+      Self.GotoVar(fSynMemo.WordAtCursor);
+end;
+
 procedure TFormEditor.PageControl1Change(Sender: TObject);
-var
-  S: AnsiString;
 begin
   if (PageControl1.ActivePage is TMyTabSheet) then
   begin
@@ -3738,41 +3251,19 @@ begin
     TMySynAsmSyn(MyTabSh.fSynMemo.Highlighter).SelectWord := MyTabSh.SelectWord;
     MyTabSh.fSynMemo.Repaint;
 
-    S := MyTabSh.fFile;
-
     if not LoadProjectB then
     begin
-      ProjectFile := S;
-      ProjectPath := ExtractFilePath(S);
-      ProjectName := ExtractFileName(S);
+      ProjectFile := MyTabSh.FilePath;
+      ProjectPath := ExtractFilePath(MyTabSh.FilePath);
+      ProjectName := ExtractFileName(MyTabSh.FilePath);
       ProjectName := Copy(ProjectName, 1, Pos('.', ProjectName) - 1);
     end;
 
-    PostMessage(FormEditor.Handle, WM_UPDATEEXPLORER_VAR, 0, 0);
-
-    with StatusBar1 do
-    begin
-      Panels[0].Text := 'Строка: ' + IntToStr(MyTabSh.fSynMemo.CaretY);
-      Panels[1].Text := 'Столбец: ' + IntToStr(MyTabSh.fSynMemo.CaretX);
-
-      if MyTabSh.fSynMemo.InsertMode then
-        Panels[2].Text := 'Вставка'
-      else
-        Panels[2].Text := 'Перезаписать';
-
-      Panels[3].Text := 'Файл: ' + S;
-    end;
+    PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
   end
   else
   begin
     ExplorerVar.Clear;
-    with StatusBar1 do
-    begin
-      Panels[0].Text := 'Строка:';
-      Panels[1].Text := 'Столбец:';
-      Panels[2].Text := 'Вставка';
-      Panels[3].Text := 'Файл:';
-    end;
   end;
 end;
 
@@ -3781,7 +3272,6 @@ procedure TFormEditor.PageControl1ContextPopup(Sender: TObject;
 var
   I: Integer;
   MPos: TPoint;
-  S: AnsiString;
 begin
   I := PageControl1.IndexOfTabAt(MousePos.x, MousePos.y);
   if I < 0 then
@@ -3799,48 +3289,25 @@ begin
     TMySynAsmSyn(MyTabSh.fSynMemo.Highlighter).SelectWord := MyTabSh.SelectWord;
     MyTabSh.fSynMemo.Repaint;
 
-    S := MyTabSh.fFile;
-
     if not LoadProjectB then
     begin
-      ProjectFile := S;
-      ProjectPath := ExtractFilePath(S);
-      ProjectName := ExtractFileName(S);
+      ProjectFile := MyTabSh.FilePath;
+      ProjectPath := ExtractFilePath(MyTabSh.FilePath);
+      ProjectName := ExtractFileName(MyTabSh.FilePath);
       ProjectName := Copy(ProjectName, 1, Pos('.', ProjectName) - 1);
     end;
 
-    PostMessage(FormEditor.Handle, WM_UPDATEEXPLORER_VAR, 0, 0);
-
-    with StatusBar1 do
-    begin
-      Panels[0].Text := 'Строка: ' + IntToStr(MyTabSh.fSynMemo.CaretY);
-      Panels[1].Text := 'Столбец: ' + IntToStr(MyTabSh.fSynMemo.CaretX);
-
-      if MyTabSh.fSynMemo.InsertMode then
-        Panels[2].Text := 'Вставка'
-      else
-        Panels[2].Text := 'Перезаписать';
-
-      Panels[3].Text := 'Файл: ' + S;
-    end;
+    PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
 
     PMenuTab.Popup(MPos.x, MPos.y);
   end
   else
   begin
     ExplorerVar.Clear;
-    with StatusBar1 do
-    begin
-      Panels[0].Text := 'Строка:';
-      Panels[1].Text := 'Столбец:';
-      Panels[2].Text := 'Вставка';
-      Panels[3].Text := 'Файл:';
-    end;
   end;
 end;
 
-procedure TFormEditor.PageControl1MouseMove(Sender: TObject; Shift: TShiftState;
-  x, y: Integer);
+procedure TFormEditor.PageControl1MouseMove(Sender: TObject; Shift: TShiftState; x, y: Integer);
 begin
   ActPage := PageControl1.IndexOfTabAt(x, y);
 end;
@@ -3854,24 +3321,20 @@ begin
       with (PageControl1.Pages[I] as TMyTabSheet) do
       begin
         SaveToFile;
-        fSynMemo.ActiveLineColor := clNone;
       end;
 end;
 
-procedure TFormEditor.SaveDialogCanClose(Sender: TObject;
-  var CanClose: Boolean);
+procedure TFormEditor.SaveDialogCanClose(Sender: TObject; var CanClose: Boolean);
 var
   SearchRec: TSearchRec;
-  Str, S: AnsiString;
+  S: AnsiString;
 begin
   CanClose := False;
-  Str := SaveDialog.FileName;
 
-  if FindFirst(Str, faAnyFile, SearchRec) = 0 then
+  if FindFirst(SaveDialog.FileName, faAnyFile, SearchRec) = 0 then
   begin
-    S := 'Файл ' + ExtractFileName(Str) + ' уже существует. Заменить?';
-    if MessageBoxA(SaveDialog.Handle, PAnsiChar(S), 'Внимание!',
-      MB_ICONQUESTION or MB_YESNO) = mrYes then
+    S := 'Р¤Р°Р№Р» ' + ExtractFileName(SaveDialog.FileName) + ' СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚. Р—Р°РјРµРЅРёС‚СЊ?';
+    if MessageBoxA(SaveDialog.Handle, PAnsiChar(S), 'Р’РЅРёРјР°РЅРёРµ!', MB_ICONQUESTION or MB_YESNO) = mrYes then
       CanClose := True;
   end
   else
@@ -3897,8 +3360,7 @@ begin
 {$I+}
     if IOResult <> 0 then
     begin
-      MessageBoxA(Handle, 'Произошла ошибка при создании файла.', 'Ошибка!',
-        MB_ICONERROR or MB_OK);
+      MessageBoxA(Handle, 'РџСЂРѕРёР·РѕС€Р»Р° РѕС€РёР±РєР° РїСЂРё СЃРѕР·РґР°РЅРёРё С„Р°Р№Р»Р°.', 'РћС€РёР±РєР°!', MB_ICONERROR or MB_OK);
       Exit;
     end
     else
@@ -3965,7 +3427,7 @@ begin
       Value := Copy(Value, 2, Length(Value));
   end;
 
-  PostMessage(FormEditor.Handle, WM_UPDATEEXPLORER_VAR, 0, 0);
+  PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
 end;
 
 procedure TFormEditor.SynCompletionExecute(Kind: SynCompletionType;
@@ -3984,10 +3446,8 @@ procedure TFormEditor.SynCompletionExecute(Kind: SynCompletionType;
       if S[I] = '.' then
         Inc(Dot)
       else
-
-        if S[I] in [#1 .. #32]
-      { , '(', ')', '[', ']', ',', '=', '\', '/', ':'] } then
-        Break
+        if S[I] in [#1 .. #32] { , '(', ')', '[', ']', ',', '=', '\', '/', ':'] } then
+          Break
       else if Dot = 0 then
         S2 := S[I] + S2
       else
@@ -4006,8 +3466,7 @@ procedure TFormEditor.SynCompletionExecute(Kind: SynCompletionType;
 
   function stl(const nam: string): string;
   begin
-    Result := '\color{clNavy}\style{-B}' + nam +
-      '\color{clNone}\column{}\style{+B}';
+    Result := '\color{clNavy}\style{-B}' + nam + '\color{clNone}\column{}\style{+B}';
   end;
 
   function IsWordBreakChar(AChar: WideChar): Boolean;
@@ -4066,7 +3525,7 @@ begin
       begin
         S := fSynMemo.Lines.Text;
         Scan.FindInclude(S);
-        FindVar;
+        Scan.FindVar(ProjectPath, FormOptions.EditINC.Text);
         Scan.BeginScan(S);
 
         ptrVar := ListVar;
@@ -4093,8 +3552,7 @@ begin
             while ptrP <> nil do
             begin
               InsertList.Add(ptrP^.fName);
-              ItemList.Add(stl('var') + ptrP^.fName +
-                ':\color{clBlue}\style{-B} ' + ptrP^.fType);
+              ItemList.Add(stl('var') + ptrP^.fName + ':\color{clBlue}\style{-B} ' + ptrP^.fType);
               ptrP := ptrP^.fNext;
             end;
 
@@ -4113,8 +3571,7 @@ begin
               while ptrP <> nil do
               begin
                 InsertList.Add(ptrP^.fName);
-                ItemList.Add(stl('var') + ptrP^.fName +
-                  ':\color{clBlue}\style{-B} ' + ptrP^.fType);
+                ItemList.Add(stl('var') + ptrP^.fName + ':\color{clBlue}\style{-B} ' + ptrP^.fType);
                 ptrP := ptrP^.fNext;
               end;
             end;
@@ -4161,8 +3618,7 @@ begin
             while ptrP <> nil do
             begin
               InsertList.Add(ptrP^.fName);
-              ItemList.Add(stl('var') + ptrP^.fName +
-                ':\color{clBlue}\style{-B} ' + ptrP^.fType);
+              ItemList.Add(stl('var') + ptrP^.fName + ':\color{clBlue}\style{-B} ' + ptrP^.fType);
               ptrP := ptrP^.fNext;
             end;
 
@@ -4181,8 +3637,7 @@ begin
               while ptrP <> nil do
               begin
                 InsertList.Add(ptrP^.fName);
-                ItemList.Add(stl('var') + ptrP^.fName +
-                  ':\color{clBlue}\style{-B} ' + ptrP^.fType);
+                ItemList.Add(stl('var') + ptrP^.fName + ':\color{clBlue}\style{-B} ' + ptrP^.fType);
                 ptrP := ptrP^.fNext;
               end;
             end;
@@ -4206,8 +3661,7 @@ begin
         for I := Length(Line) downto 1 do
         begin
           C := Line[I];
-          if (C in [#1 .. #32]) or
-            (not(C in ['0' .. '9', 'A' .. 'Z', 'a' .. 'z', '_', '.'])) then
+          if (C in [#1 .. #32]) or (not(C in ['0' .. '9', 'A' .. 'Z', 'a' .. 'z', '_', '.'])) then
             Break
           else
             Dot := C = '.';
@@ -4220,15 +3674,14 @@ begin
       Scan.ClearList;
       S := fSynMemo.Lines.Text;
       Scan.FindInclude(S);
-      FindVar;
+      Scan.FindVar(ProjectPath, FormOptions.EditINC.Text);
       Scan.BeginScan(S);
 
       ptrImport := ListImport;
       while ptrImport <> nil do
       begin
         InsertList.Add(ptrImport^.fName);
-        ItemList.Add(stl('import') + ptrImport^.fName +
-          '->\color{clBlue}\style{-B} ' + ptrImport^.fData);
+        ItemList.Add(stl('import') + ptrImport^.fName + '->\color{clBlue}\style{-B} ' + ptrImport^.fData);
         ptrImport := ptrImport^.fNext;
       end;
       // ***************************************************************************
@@ -4246,8 +3699,7 @@ begin
       while ptrType <> nil do
       begin
         InsertList.Add(ptrType^.fName);
-        ItemList.Add(stl('type') + ptrType^.fName + ':\color{clBlue}\style{-B} '
-          + UpperCase(ptrType^.fTypeName) + ' ' + ptrType^.fTypeLong);
+        ItemList.Add(stl('type') + ptrType^.fName + ':\color{clBlue}\style{-B} ' + UpperCase(ptrType^.fTypeName) + ' ' + ptrType^.fTypeLong);
         ptrType := ptrType^.fNext;
       end;
       // ***************************************************************************
@@ -4302,8 +3754,7 @@ begin
       while ptrConst <> nil do
       begin
         InsertList.Add(ptrConst^.fName);
-        ItemList.Add(stl('const') + ptrConst^.fName +
-          '\color{clBlue}\style{-B} = ' + ptrConst^.fData);
+        ItemList.Add(stl('const') + ptrConst^.fName + '\color{clBlue}\style{-B} = ' + ptrConst^.fData);
         ptrConst := ptrConst^.fNext;
       end;
       // ***************************************************************************
@@ -4312,8 +3763,7 @@ begin
       while ptrVar <> nil do
       begin
         InsertList.Add(ptrVar^.fName);
-        ItemList.Add(stl('var') + ptrVar^.fName + ':\color{clBlue}\style{-B} ' +
-          ptrVar^.fTypeLong);
+        ItemList.Add(stl('var') + ptrVar^.fName + ':\color{clBlue}\style{-B} ' + ptrVar^.fTypeLong);
         ptrVar := ptrVar^.fNext;
       end;
 
@@ -4329,8 +3779,7 @@ procedure TFormEditor.SynHintExecute(Kind: SynCompletionType; Sender: TObject;
 
   function stl(const nam: string): string;
   begin
-    Result := '\color{clNavy}\style{+B}' + nam +
-      '\color{clNone}\column{}\style{-B}';
+    Result := '\color{clNavy}\style{+B}' + nam + '\color{clNone}\column{}\style{-B}';
   end;
 
 var
@@ -4351,10 +3800,10 @@ begin
       S2 := fSynMemo.Text;
       Scan := TScan.Create;
       Scan.FindInclude(S2);
-      FindVar;
+      Scan.FindVar(ProjectPath, FormOptions.EditINC.Text);
       Scan.BeginScan(S2);
 
-      case FindVarNameAndPath(S) of
+      case Scan.FindVarNameAndPath(S) of
         tkImport:
           begin
             if ptrImport^.FInc = nil then
@@ -4362,9 +3811,7 @@ begin
             else
               S2 := ptrImport^.FInc^.fName;
 
-            SynHint.ItemList.Text :=
-              stl('import ' + ptrImport^.fName + ' -> ' + ptrImport^.fData) +
-              ' - ' + ExtractFileName(S2);
+            SynHint.ItemList.Text := stl('import ' + ptrImport^.fName + ' -> ' + ptrImport^.fData) + ' - ' + ExtractFileName(S2);
           end;
 
         tkInterface:
@@ -4374,9 +3821,7 @@ begin
             else
               S2 := ptrInterface^.FInc^.fName;
 
-            SynHint.ItemList.Text := '\color{clNavy}\style{+B}interface ' +
-              ptrInterface^.fName + '\color{clNone}\style{-B} - ' +
-              ExtractFileName(S2);
+            SynHint.ItemList.Text := '\color{clNavy}\style{+B}interface ' + ptrInterface^.fName + '\color{clNone}\style{-B} - ' + ExtractFileName(S2);
           end;
 
         tkMacro:
@@ -4386,9 +3831,7 @@ begin
             else
               S2 := ptrMacro^.FInc^.fName;
 
-            SynHint.ItemList.Text := '\color{clNavy}\style{+B}macro ' +
-              ptrMacro^.fName + '\color{clNone}\style{-B} - ' +
-              ExtractFileName(S2);
+            SynHint.ItemList.Text := '\color{clNavy}\style{+B}macro ' + ptrMacro^.fName + '\color{clNone}\style{-B} - ' + ExtractFileName(S2);
           end;
 
         tkStruct:
@@ -4398,9 +3841,7 @@ begin
             else
               S2 := ptrStruct^.FInc^.fName;
 
-            SynHint.ItemList.Text := '\color{clNavy}\style{+B}struct ' +
-              ptrStruct^.fName + '\color{clNone}\style{-B} - ' +
-              ExtractFileName(S2);
+            SynHint.ItemList.Text := '\color{clNavy}\style{+B}struct ' + ptrStruct^.fName + '\color{clNone}\style{-B} - ' + ExtractFileName(S2);
           end;
 
         tkStruc:
@@ -4410,9 +3851,7 @@ begin
             else
               S2 := ptrStruc^.FInc^.fName;
 
-            SynHint.ItemList.Text := '\color{clNavy}\style{+B}struc ' +
-              ptrStruc^.fName + '\color{clNone}\style{-B} - ' +
-              ExtractFileName(S2);
+            SynHint.ItemList.Text := '\color{clNavy}\style{+B}struc ' + ptrStruc^.fName + '\color{clNone}\style{-B} - ' + ExtractFileName(S2);
           end;
 
         tkProc:
@@ -4422,9 +3861,7 @@ begin
             else
               S2 := ptrProc^.FInc^.fName;
 
-            SynHint.ItemList.Text := '\color{clNavy}\style{+B}proc ' +
-              ptrProc^.fName + '\color{clNone}\style{-B} - ' +
-              ExtractFileName(S2);
+            SynHint.ItemList.Text := '\color{clNavy}\style{+B}proc ' + ptrProc^.fName + '\color{clNone}\style{-B} - ' + ExtractFileName(S2);
           end;
 
         tkVar:
@@ -4434,9 +3871,7 @@ begin
             else
               S2 := ptrVar^.FInc^.fName;
 
-            SynHint.ItemList.Text :=
-              stl('var ' + ptrVar^.fName + ': ' + ptrVar^.fTypeLong) + ' - ' +
-              ExtractFileName(S2);
+            SynHint.ItemList.Text := stl('var ' + ptrVar^.fName + ': ' + ptrVar^.fTypeLong) + ' - ' + ExtractFileName(S2);
           end;
 
         tkType:
@@ -4446,10 +3881,7 @@ begin
             else
               S2 := ptrType^.FInc^.fName;
 
-            SynHint.ItemList.Text :=
-              stl('type ' + ptrType^.fName + ': ' +
-              UpperCase(ptrType^.fTypeName) + ' ' + ptrType^.fTypeLong) + ' - '
-              + ExtractFileName(S2);
+            SynHint.ItemList.Text := stl('type ' + ptrType^.fName + ': ' + UpperCase(ptrType^.fTypeName) + ' ' + ptrType^.fTypeLong) + ' - ' + ExtractFileName(S2);
           end;
 
         tkLabel:
@@ -4459,9 +3891,7 @@ begin
             else
               S2 := ptrLabel^.FInc^.fName;
 
-            SynHint.ItemList.Text := '\color{clNavy}\style{+B}label ' +
-              ptrLabel^.fName + '\color{clNone}\style{-B} - ' +
-              ExtractFileName(S2);
+            SynHint.ItemList.Text := '\color{clNavy}\style{+B}label ' + ptrLabel^.fName + '\color{clNone}\style{-B} - ' + ExtractFileName(S2);
           end;
 
         tkConst:
@@ -4471,9 +3901,7 @@ begin
             else
               S2 := ptrConst^.FInc^.fName;
 
-            SynHint.ItemList.Text :=
-              stl('const ' + ptrConst^.fName + ' = ' + ptrConst^.fData) + ' - '
-              + ExtractFileName(S2);
+            SynHint.ItemList.Text := stl('const ' + ptrConst^.fName + ' = ' + ptrConst^.fData) + ' - ' + ExtractFileName(S2);
           end;
       else
         CanExecute := False;
@@ -4510,19 +3938,15 @@ var
 begin
   if not FileExists(DBG) then
   begin
-    MessageBoxA(Handle, 'Отладчик не найден. ' +
-      'Проверти путь в настройках программы!', 'Ошибка!',
-      MB_ICONERROR or MB_OK);
+    MessageBoxA(Handle, 'РћС‚Р»Р°РґС‡РёРє РЅРµ РЅР°Р№РґРµРЅ. РџСЂРѕРІРµСЂС‚Рё РїСѓС‚СЊ РІ РЅР°СЃС‚СЂРѕР№РєР°С… РїСЂРѕРіСЂР°РјРјС‹!', 'РћС€РёР±РєР°!', MB_ICONERROR or MB_OK);
     Exit;
   end;
 
   S := ProjectPath + ProjectName;
-  if (FileExists(S + '.com')) or (FileExists(S + '.exe')) or
-    (FileExists(S + '.dll')) then
+  if (FileExists(S + '.com')) or (FileExists(S + '.exe')) or (FileExists(S + '.dll')) then
     RunDBG
   else
-    MessageBoxA(Handle, 'Файл *.com, *.exe, *.dll не найден!', 'Внимание!',
-      MB_ICONINFORMATION or MB_OK);
+    MessageBoxA(Handle, 'Р¤Р°Р№Р» *.com, *.exe, *.dll РЅРµ РЅР°Р№РґРµРЅ!', 'Р’РЅРёРјР°РЅРёРµ!', MB_ICONINFORMATION or MB_OK);
 end;
 
 procedure TFormEditor.MenuLastFilesClick(Sender: TObject);
@@ -4544,8 +3968,7 @@ begin
 
   if not FileExists(S) then
   begin
-    MessageBoxA(Handle, PAnsiChar('Файл ' + S + ' не найден!'), 'Ошибка!',
-      MB_ICONSTOP or MB_OK);
+    MessageBoxA(Handle, PAnsiChar(AnsiString('Р¤Р°Р№Р» ' + S + ' РЅРµ РЅР°Р№РґРµРЅ!')), 'РћС€РёР±РєР°!', MB_ICONSTOP or MB_OK);
     Exit;
   end;
 
@@ -4589,7 +4012,7 @@ begin
     if N32.Count = 0 then
     begin
       M := TMenuItem.Create(MainMenu);
-      M.Caption := 'Пусто';
+      M.Caption := 'РџСѓСЃС‚Рѕ';
       N32.Add(M);
     end;
 
@@ -4598,17 +4021,20 @@ begin
 end;
 
 procedure TFormEditor.AddLastFiles(const FileName: string);
+var
+  I: Integer;
 begin
   if FileName = '' then
     Exit;
 
-  with ListBoxFile.Items do
-  begin
-    if Count = 20 then
-      Delete(19);
+  if ListBoxFile.Items.Count = 20 then
+    ListBoxFile.Items.Delete(19);
 
-    Insert(0, FileName);
-  end;
+  for I := 0 to ListBoxFile.Items.Count - 1 do
+    if ListBoxFile.Items.Strings[I] = FileName then
+      Exit;
+
+  ListBoxFile.Items.Insert(0, FileName);
 end;
 
 function TFormEditor.LoadProject(const FileName: AnsiString): Boolean;
@@ -4623,8 +4049,7 @@ begin
 
   if not FileExists(FileName) then
   begin
-    MessageBoxA(Handle, PAnsiChar('Файл ' + FileName + ' не найден!'),
-      'Ошибка!', MB_ICONERROR or MB_OK);
+    MessageBoxA(Handle, PAnsiChar(AnsiString('Р¤Р°Р№Р» ' + FileName + ' РЅРµ РЅР°Р№РґРµРЅ!')), 'РћС€РёР±РєР°!', MB_ICONERROR or MB_OK);
     Exit;
   end;
 
@@ -4669,9 +4094,7 @@ begin
     begin
       Str := Ini.ReadString('asm', 'asm' + IntToStr(I), Str);
 
-      if (not FileExists(ProjectPath + ExtractFileName(Str))) or
-        (FindNode(ExtractFileName(Str), True)) or (ExtractFileExt(Str) = '')
-      then
+      if (not FileExists(ProjectPath + ExtractFileName(Str))) or (FindNode(ExtractFileName(Str), True)) or (ExtractFileExt(Str) = '') then
         Continue;
 
       NodeSource := AddChild(NodeDirSource);
@@ -4704,9 +4127,7 @@ begin
     begin
       Str := Ini.ReadString('inc', 'inc' + IntToStr(I), Str);
 
-      if (not FileExists(ProjectPath + ExtractFileName(Str))) or
-        (FindNode(ExtractFileName(Str), False)) or (ExtractFileExt(Str) = '')
-      then
+      if (not FileExists(ProjectPath + ExtractFileName(Str))) or (FindNode(ExtractFileName(Str), False)) or (ExtractFileExt(Str) = '') then
         Continue;
 
       NodeInclude := AddChild(NodeDirInclude);
@@ -4744,16 +4165,14 @@ end;
 procedure TFormEditor.LoadAsmOrIncFile(const FileName: AnsiString);
 var
   I: Integer;
-  B: Boolean;
-  Str, Str2: AnsiString;
+  IsFound: Boolean;
 begin
   if FileName = '' then
     Exit;
 
   if not FileExists(FileName) then
   begin
-    MessageBoxA(Handle, PAnsiChar('Файл ' + FileName + ' не найден!'),
-      'Ошибка!', MB_ICONERROR or MB_OK);
+    MessageBoxA(Handle, PAnsiChar(AnsiString('Р¤Р°Р№Р» ' + FileName + ' РЅРµ РЅР°Р№РґРµРЅ!')), 'РћС€РёР±РєР°!', MB_ICONERROR or MB_OK);
     Exit;
   end;
 
@@ -4769,23 +4188,20 @@ begin
     N34.Enabled := False;
   end;
 
-  B := False;
-  Str := LowerCase(FileName);
+  IsFound := False;
 
   for I := 1 to PageControl1.PageCount - 1 do
   begin
-    Str2 := LowerCase(TMyTabSheet(PageControl1.Pages[I]).fFile);
-
-    if Str = Str2 then
+    if LowerCase(FileName) = LowerCase(TMyTabSheet(PageControl1.Pages[I]).FilePath) then
     begin
-      B := True;
+      IsFound := True;
       PageControl1.ActivePage := PageControl1.Pages[I];
       ActiveControl := (PageControl1.ActivePage as TMyTabSheet).fSynMemo;
       Break;
     end;
   end;
 
-  if not B then
+  if not IsFound then
     CreatePage(FileName);
 end;
 

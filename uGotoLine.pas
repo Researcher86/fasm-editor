@@ -46,8 +46,8 @@ begin
       begin
         if (S = '') or (StrToInt(S) = 0) or (StrToInt(S) > fSynMemo.Lines.Count) then
         begin
-          Mes := 'Номер строки должен быть между 1 и ' + IntToStr(fSynMemo.Lines.Count);
-          MessageBox(Self.Handle, PChar(Mes), 'Ошибка!', MB_ICONERROR or MB_OK);
+          Mes := 'РќРѕРјРµСЂ СЃС‚СЂРѕРєРё РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ РјРµР¶РґСѓ 1 Рё ' + IntToStr(fSynMemo.Lines.Count);
+          MessageBox(Self.Handle, PChar(Mes), 'РћС€РёР±РєР°!', MB_ICONERROR or MB_OK);
           Exit;
         end;
 
@@ -76,7 +76,7 @@ begin
     if (ActivePage is TMyTabSheet) then
       with (ActivePage as TMyTabSheet) do
       begin
-        Label1.Caption := 'Номер строки (1 - ' + IntToStr(fSynMemo.Lines.Count) + '):';
+        Label1.Caption := 'РќРѕРјРµСЂ СЃС‚СЂРѕРєРё (1 - ' + IntToStr(fSynMemo.Lines.Count) + '):';
         ComboBox1.Text := IntToStr(fSynMemo.CaretY);
       end;
 
