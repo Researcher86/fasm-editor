@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{CF5F1974-0E6F-4AF1-BD41-1AF26B49E281}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="FEditor.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Test\FEditorTests.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="FEditor">
+        <MSBuild Projects="FEditor.dproj"/>
+    </Target>
+    <Target Name="FEditor:Clean">
+        <MSBuild Projects="FEditor.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FEditor:Make">
+        <MSBuild Projects="FEditor.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FEditorTests">
+        <MSBuild Projects="Test\FEditorTests.dproj"/>
+    </Target>
+    <Target Name="FEditorTests:Clean">
+        <MSBuild Projects="Test\FEditorTests.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FEditorTests:Make">
+        <MSBuild Projects="Test\FEditorTests.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="FEditor;FEditorTests"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="FEditor:Clean;FEditorTests:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="FEditor:Make;FEditorTests:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

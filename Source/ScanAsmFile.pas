@@ -1,9 +1,9 @@
-unit ScanAsmFile;
+﻿unit ScanAsmFile;
 
 interface
 
 uses
-  SysUtils, StrUtils, Classes, MySynHighlighterAsm, Constants;
+  SysUtils, StrUtils, Classes, Constants;
 
 type
   TTokenKind = (tkImport, tkInterface, tkMacro, tkStruct, tkStruc, tkProc,
