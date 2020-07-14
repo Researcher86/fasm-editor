@@ -8,19 +8,19 @@ uses
   SyncObjs,
   Forms,
   Main in 'Main.pas' {FormEditor},
-  MySynHighlighterAsm in 'Source\MySynHighlighterAsm.pas',
+  SynHighlighterAsm in 'Source\SynHighlighterAsm.pas',
   Options in 'Options.pas' {FormOptions},
   NewProject in 'NewProject.pas' {FormNewProject},
-  MyTabSheet in 'Source\MyTabSheet.pas',
-  uSearchReplaceText in 'uSearchReplaceText.pas' {FormSearchReplaceText},
+  TabSheet in 'Source\TabSheet.pas',
+  SearchReplaceText in 'SearchReplaceText.pas' {FormSearchReplaceText},
   About in 'About.pas' {FormAbout},
   FindInFile in 'FindInFile.pas' {FormFindInFile},
   ParamRun in 'ParamRun.pas' {FormParamRun},
   RegistryExt in 'Source\RegistryExt.pas',
-  ScanAsmFile in 'Source\ScanAsmFile.pas',
-  uGotoLine in 'uGotoLine.pas' {FormGotoLine},
-  uListsExportsDLL in 'uListsExportsDLL.pas' {FormListsExportsDLL},
-  Constants in 'Source\Constants.pas';
+  AsmSource in 'Source\AsmSource.pas',
+  GotoLine in 'GotoLine.pas' {FormGotoLine},
+  ListsExportsDLL in 'ListsExportsDLL.pas' {FormListsExportsDLL},
+  Utils in 'Source\Utils.pas';
 
 {$R *.res}
 {$R rsrc.RES}

@@ -18,7 +18,7 @@ Start:
   invoke RegisterClassEx, wc
   test rax, rax
   jz error
-
+  
   invoke CreateWindowEx, 0, _class, _title, WS_VISIBLE + WS_DLGFRAME + WS_SYSMENU,\
                          128, 128, 256, 192, NULL, NULL, [wc.hInstance], NULL
   test rax, rax

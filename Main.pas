@@ -4,11 +4,11 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls,
-  Forms, Constants,
+  Forms, Utils,
   Dialogs, SynEdit, Menus, SynCompletionProposal, StdCtrls,
-  Buttons, ComCtrls, ExtCtrls, ToolWin, MyTabSheet, Clipbrd, StrUtils,
+  Buttons, ComCtrls, ExtCtrls, ToolWin, TabSheet, Clipbrd, StrUtils,
   jpeg, VirtualTrees, SynExportHTML, SynEditExport,
-  SynExportRTF, SynMemo, SynEditKeyCmds, ScanAsmFile,
+  SynExportRTF, SynMemo, SynEditKeyCmds, AsmSource,
   SynEditTextBuffer, SynEditTypes, ImgList, Grids, System.ImageList, ATBinHex, ATxSHex;
 
 type
@@ -357,7 +357,7 @@ type
     procedure FileCompile(const FileName: AnsiString; Run: Boolean = False);
     function FindPage(const FindName: AnsiString; FindVar: Boolean = True): Boolean;
     procedure FindStrInFile(const S: AnsiString);
-    function CreatePage(const FileName: AnsiString; FindVar: Boolean = True): TMyTabSheet;
+    function CreatePage(const FileName: AnsiString; FindVar: Boolean = True): TCustomTabSheet;
     procedure DestroyAllPage;
     procedure SaveAll;
     procedure RunProg;
@@ -392,8 +392,8 @@ implementation
 
 {$R *.dfm}
 
-uses ShellApi, Options, NewProject, IniFiles, uSearchReplaceText,
-  About, FindInFile, ParamRun, uGotoLine, uListsExportsDLL, MySynHighlighterAsm;
+uses ShellApi, Options, NewProject, IniFiles, SearchReplaceText,
+  About, FindInFile, ParamRun, GotoLine, ListsExportsDLL, SynHighlighterAsm;
 
 const
   LastFiles = 'Options\LastFiles.lf';
@@ -468,9 +468,9 @@ begin
     Exit;
   end;
 
-  if (PageControl1.ActivePage is TMyTabSheet) then
+  if (PageControl1.ActivePage is TCustomTabSheet) then
   begin
-    SelectedText := (PageControl1.ActivePage as TMyTabSheet).SelectedText;
+    SelectedText := (PageControl1.ActivePage as TCustomTabSheet).SelectedText;
     WinHelpA(Handle, HelpFile, HELP_PARTIALKEY, LongInt(PAnsiChar(SelectedText)));
   end
   else
@@ -505,9 +505,9 @@ end;
 
 procedure TFormEditor.GotoVarAtMouse(var Msg: TMessage);
 begin
-  if (PageControl1.ActivePage is TMyTabSheet) then
-  with (PageControl1.ActivePage as TMyTabSheet) do
-    Self.GotoVar(fSynMemo.WordAtMouse);
+  if (PageControl1.ActivePage is TCustomTabSheet) then
+  with (PageControl1.ActivePage as TCustomTabSheet) do
+    Self.GotoVar(FSynMemo.WordAtMouse);
 end;
 
 procedure TFormEditor.EditStatusChange(var Msg: TMessage);
@@ -521,9 +521,9 @@ var
 begin
   for I := 1 to PageControl1.PageCount - 1 do
   begin
-    if LowerCase(FindName) = LowerCase(TMyTabSheet(PageControl1.Pages[I]).FilePath) then
+    if LowerCase(FindName) = LowerCase(TCustomTabSheet(PageControl1.Pages[I]).FilePath) then
     begin
-      (PageControl1.Pages[I] as TMyTabSheet).FilePath := FindName;
+      (PageControl1.Pages[I] as TCustomTabSheet).FilePath := FindName;
 
       if FindVar then
         PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
@@ -646,10 +646,10 @@ procedure TFormEditor.SaveProjectAs;
   begin
     for I := 1 to PageControl1.PageCount - 1 do
     begin
-      if LowerCase(FindName) = LowerCase(TMyTabSheet(PageControl1.Pages[I]).FilePath) then
+      if LowerCase(FindName) = LowerCase(TCustomTabSheet(PageControl1.Pages[I]).FilePath) then
       begin
         PageControl1.Pages[I].Caption := ExtractFileName(NewName);
-        (PageControl1.Pages[I] as TMyTabSheet).FilePath := NewName;
+        (PageControl1.Pages[I] as TCustomTabSheet).FilePath := NewName;
         Break;
       end;
     end;
@@ -748,30 +748,30 @@ var
   I: Integer;
   IsFound: Boolean;
 begin
-  if (PageControl1.ActivePage is TMyTabSheet) then
-    with (PageControl1.ActivePage as TMyTabSheet) do
+  if (PageControl1.ActivePage is TCustomTabSheet) then
+    with (PageControl1.ActivePage as TCustomTabSheet) do
     begin
       IsFound := False;
-      for I := Pred(fSynMemo.Marks.Count) downto 0 do
-        if fSynMemo.Marks.Items[I].Line = fSynMemo.CaretY then
+      for I := Pred(FSynMemo.Marks.Count) downto 0 do
+        if FSynMemo.Marks.Items[I].Line = FSynMemo.CaretY then
         begin
-          if fSynMemo.Marks.Items[I].BookmarkNumber = Mark - 351 then
-            fSynMemo.CommandProcessor(Mark, #0, nil);
+          if FSynMemo.Marks.Items[I].BookmarkNumber = Mark - 351 then
+            FSynMemo.CommandProcessor(Mark, #0, nil);
 
           IsFound := True;
           Break;
         end;
 
       if not IsFound then
-        fSynMemo.CommandProcessor(Mark, #0, nil);
+        FSynMemo.CommandProcessor(Mark, #0, nil);
     end;
 end;
 
 procedure TFormEditor.GoBookMark(Mark: Integer);
 begin
-  if (PageControl1.ActivePage is TMyTabSheet) then
-    with (PageControl1.ActivePage as TMyTabSheet) do
-      fSynMemo.CommandProcessor(Mark, #0, nil);
+  if (PageControl1.ActivePage is TCustomTabSheet) then
+    with (PageControl1.ActivePage as TCustomTabSheet) do
+      FSynMemo.CommandProcessor(Mark, #0, nil);
 end;
 
 procedure TFormEditor.RunProg;
@@ -882,8 +882,8 @@ procedure TFormEditor.RTF2Click(Sender: TObject);
 var
   FileName: string;
 begin
-  if (PageControl1.ActivePage is TMyTabSheet) then
-    with (PageControl1.ActivePage as TMyTabSheet) do
+  if (PageControl1.ActivePage is TCustomTabSheet) then
+    with (PageControl1.ActivePage as TCustomTabSheet) do
     begin
       SaveDialogExport.Filter := SynExporterRTF.DefaultFilter;
       SaveDialogExport.FileName := Copy(Caption, 1, Pos('.', Caption) - 1) + '.rtf';
@@ -1158,11 +1158,20 @@ end;
 procedure TFormEditor.CreateExpVar;
 var
   NodeDirIncludeExp, NodeDirImportExp, NodeDirInterfaceExp, NodeDirMacroExp,
-    NodeDirStructExp, NodeDirProcExp, NodeDirLabelExp, NodeDirConstExp,
-    NodeDirVarExp, NodeDirTypeExp: Boolean;
+  NodeDirStructExp, NodeDirProcExp, NodeDirLabelExp, NodeDirConstExp,
+  NodeDirVarExp, NodeDirTypeExp: Boolean;
   Scrol: Integer;
-  S: string;
-  ptrIncludeTemp: PInclude;
+
+  AsmInclude: TAsmInclude;
+  AsmImport: TAsmImport;
+  AsmInterface: TAsmInterface;
+  AsmType: TAsmType;
+  AsmMacro: TAsmMacro;
+  AsmStruct: TAsmStruct;
+  AsmProcedure: TAsmProcedure;
+  AsmLabel: TAsmLabel;
+  AsmConst: TAsmConst;
+  AsmVar: TAsmVar;
 begin
   NodeDirIncludeExp := False;
   NodeDirImportExp := False;
@@ -1175,7 +1184,7 @@ begin
   NodeDirVarExp := False;
   NodeDirTypeExp := False;
 
-  if not(PageControl1.ActivePage is TMyTabSheet) then
+  if not(PageControl1.ActivePage is TCustomTabSheet) then
     Exit;
 
   with ExplorerVar do
@@ -1314,195 +1323,171 @@ begin
     DirBol := True;
   end;
 
-  with (PageControl1.ActivePage as TMyTabSheet) do
+  with (PageControl1.ActivePage as TCustomTabSheet) do
   begin
-    S := fSynMemo.Lines.Text;
-    Scan := TScan.Create;
-    Scan.FindInclude(S);
+    AsmScanner := TAsmScanner.Create;
+    AsmScanner.Run(ProjectPath, FSynMemo.Lines.Text, FormOptions.EditINC.Text);
 
-    ptrInclude := ListInclude;
-    while ptrInclude <> nil do
+    for AsmInclude in AsmScanner.ListInclude.ToArray do
     begin
       NodeTemp := ExplorerVar.AddChild(varNodeDirInclude);
       ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
       with ExpFieldVar^ do
       begin
-        fBeginChar := ptrInclude^.fBeginChar;
-        fEndChar := ptrInclude^.fEndChar;
-        NameNode := ptrInclude^.fName;
+        fBeginChar := AsmInclude.FBeginChar;
+        fEndChar := AsmInclude.FEndChar;
+        NameNode := AsmInclude.FName;
         DirBol := False;
       end;
-      ptrInclude := ptrInclude^.fNext;
     end;
 
-    Scan.FindVar(ProjectPath, FormOptions.EditINC.Text);
-    Scan.BeginScan(S);
-
-    ptrImport := ListImport;
-    while ptrImport <> nil do
+    for AsmImport in AsmScanner.ListImport.ToArray do
     begin
-      if ptrImport^.fInc = nil then
+      if AsmImport.FInclude = nil then
       begin
         NodeTemp := ExplorerVar.AddChild(varNodeDirImport);
         ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
         with ExpFieldVar^ do
         begin
-          fBeginChar := ptrImport^.fBeginChar;
-          fEndChar := ptrImport^.fEndChar;
-          NameNode := ptrImport^.fName + ' -> ' + ptrImport^.fData;
+          fBeginChar := AsmImport.FBeginChar;
+          fEndChar := AsmImport.FEndChar;
+          NameNode := AsmImport.FName + ' -> ' + AsmImport.FData;
           DirBol := False;
         end;
       end;
-      ptrImport := ptrImport^.fNext;
     end;
 
-    ptrInterface := ListInterface;
-    while ptrInterface <> nil do
+    for AsmInterface in AsmScanner.ListInterface.ToArray do
     begin
-      if ptrInterface^.fInc = nil then
+      if AsmInterface.FInclude = nil then
       begin
         NodeTemp := ExplorerVar.AddChild(varNodeDirInterface);
         ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
         with ExpFieldVar^ do
         begin
-          fBeginChar := ptrInterface^.fBeginChar;
-          fEndChar := ptrInterface^.fEndChar;
-          NameNode := ptrInterface^.fName;
+          fBeginChar := AsmInterface.FBeginChar;
+          fEndChar := AsmInterface.FEndChar;
+          NameNode := AsmInterface.FName;
           DirBol := False;
         end;
       end;
-      ptrInterface := ptrInterface^.fNext;
     end;
 
-    ptrType := ListType;
-    while ptrType <> nil do
+    for AsmType in AsmScanner.ListType.ToArray do
     begin
-      if ptrType^.fInc = nil then
+      if AsmType.FInclude = nil then
       begin
         NodeTemp := ExplorerVar.AddChild(NodeDirType);
         ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
         with ExpFieldVar^ do
         begin
-          fBeginChar := ptrType^.fBeginChar;
-          fEndChar := ptrType^.fEndChar;
-          NameNode := ptrType^.fName + ': ' + UpperCase(ptrType^.fTypeName) + ' ' + ptrType^.fTypeLong;
+          fBeginChar := AsmType.FBeginChar;
+          fEndChar := AsmType.FEndChar;
+          NameNode := AsmType.FName + ': ' + UpperCase(AsmType.FTypeName) + ' ' + AsmType.FTypeLong;
           DirBol := False;
         end;
       end;
-      ptrType := ptrType^.fNext;
     end;
 
-    ptrMacro := ListMacro;
-    while ptrMacro <> nil do
+    for AsmMacro in AsmScanner.ListMacro.ToArray do
     begin
-      if ptrMacro^.fInc = nil then
+      if AsmMacro.FInclude = nil then
       begin
         NodeTemp := ExplorerVar.AddChild(varNodeDirMacro);
         ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
         with ExpFieldVar^ do
         begin
-          fBeginChar := ptrMacro^.fBeginChar;
-          fEndChar := ptrMacro^.fEndChar;
-          NameNode := ptrMacro^.fName;
+          fBeginChar := AsmMacro.FBeginChar;
+          fEndChar := AsmMacro.FEndChar;
+          NameNode := AsmMacro.FName;
           DirBol := False;
         end;
       end;
-      ptrMacro := ptrMacro^.fNext;
     end;
 
-    ptrStruct := ListStruct;
-    while ptrStruct <> nil do
+    for AsmStruct in AsmScanner.ListStruct.ToArray do
     begin
-      if ptrStruct^.fInc = nil then
+      if AsmStruct.FInclude = nil then
       begin
         NodeTemp := ExplorerVar.AddChild(varNodeDirStruct);
         ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
         with ExpFieldVar^ do
         begin
-          fBeginChar := ptrStruct^.fBeginChar;
-          fEndChar := ptrStruct^.fEndChar;
-          NameNode := ptrStruct^.fName;
+          fBeginChar := AsmStruct.FBeginChar;
+          fEndChar := AsmStruct.FEndChar;
+          NameNode := AsmStruct.FName;
           DirBol := False;
         end;
       end;
-      ptrStruct := ptrStruct^.fNext;
     end;
 
-    ptrProc := ListProc;
-    while ptrProc <> nil do
+    for AsmProcedure in AsmScanner.ListProcedure.ToArray do
     begin
-      if ptrProc^.fInc = nil then
+      if AsmProcedure.FInclude = nil then
       begin
         NodeTemp := ExplorerVar.AddChild(varNodeDirProc);
         ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
         with ExpFieldVar^ do
         begin
-          fBeginChar := ptrProc^.fBeginChar;
-          fEndChar := ptrProc^.fEndChar;
-          NameNode := ptrProc^.fName;
+          fBeginChar := AsmProcedure.FBeginChar;
+          fEndChar := AsmProcedure.FEndChar;
+          NameNode := AsmProcedure.FName;
           // + '(' + ptrProc^.fData + ')';
           DirBol := False;
         end;
       end;
-      ptrProc := ptrProc^.fNext;
     end;
 
-    ptrLabel := ListLabel;
-    while ptrLabel <> nil do
+    for AsmLabel in AsmScanner.ListLabel.ToArray do
     begin
-      if ptrLabel^.fInc = nil then
+      if AsmLabel.FInclude = nil then
       begin
         NodeTemp := ExplorerVar.AddChild(varNodeDirLabel);
         ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
         with ExpFieldVar^ do
         begin
-          fBeginChar := ptrLabel^.fBeginChar;
-          fEndChar := ptrLabel^.fEndChar;
-          NameNode := ptrLabel^.fName;
+          fBeginChar := AsmLabel.FBeginChar;
+          fEndChar := AsmLabel.FEndChar;
+          NameNode := AsmLabel.FName;
           DirBol := False;
         end;
       end;
-      ptrLabel := ptrLabel^.fNext;
     end;
 
-    ptrConst := ListConst;
-    while ptrConst <> nil do
+    for AsmConst in AsmScanner.ListConst.ToArray do
     begin
-      if ptrConst^.fInc = nil then
+      if AsmConst.FInclude = nil then
       begin
         NodeTemp := ExplorerVar.AddChild(varNodeDirConst);
         ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
         with ExpFieldVar^ do
         begin
-          fBeginChar := ptrConst^.fBeginChar;
-          fEndChar := ptrConst^.fEndChar;
-          NameNode := ptrConst^.fName + ' = ' + ptrConst^.fData;
+          fBeginChar := AsmConst.FBeginChar;
+          fEndChar := AsmConst.FEndChar;
+          NameNode := AsmConst.FName + ' = ' + AsmConst.FData;
           DirBol := False;
         end;
       end;
-      ptrConst := ptrConst^.fNext;
     end;
 
-    ptrVar := ListVar;
-    while ptrVar <> nil do
+    for AsmVar in AsmScanner.ListVar.ToArray do
     begin
-      if ptrVar^.fInc = nil then
+      if AsmVar.FInclude = nil then
       begin
         NodeTemp := ExplorerVar.AddChild(NodeDirVar);
         ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
         with ExpFieldVar^ do
         begin
-          fBeginChar := ptrVar^.fBeginChar;
-          fEndChar := ptrVar^.fEndChar;
-          NameNode := ptrVar^.fName + ': ' + ptrVar^.fTypeLong;
+          fBeginChar := AsmVar.FBeginChar;
+          fEndChar := AsmVar.FEndChar;
+          NameNode := AsmVar.FName + ': ' + AsmVar.FTypeLong;
           DirBol := False;
         end;
       end;
-      ptrVar := ptrVar^.fNext;
     end;
   end;
 
-  Scan.Free;
+  AsmScanner.Free;
 
   ExplorerVar.EndUpdate;
 
@@ -1540,7 +1525,7 @@ begin
   end;
 end;
 
-function TFormEditor.CreatePage(const FileName: AnsiString; FindVar: Boolean = True): TMyTabSheet;
+function TFormEditor.CreatePage(const FileName: AnsiString; FindVar: Boolean = True): TCustomTabSheet;
 begin
   Result := nil;
   if ExtractFileExt(FileName) = '' then
@@ -1552,23 +1537,23 @@ begin
     Exit;
   end;
 
-  MyTabSh := TMyTabSheet.Create(PageControl1, MyTabSheetImageList, FormEditor.ImBookMark, FormEditor.PMenuEdit, FileName);
-  MyTabSh.Parent := PageControl1;
-  PageControl1.ActivePage := MyTabSh;
-  SynCompletion.Editor := MyTabSh.fSynMemo;
-  SynHint.Editor := MyTabSh.fSynMemo;
-  SynCompletionJump.Editor := MyTabSh.fSynMemo;
-  ActiveControl := MyTabSh.fSynMemo;
-  TMySynAsmSyn(MyTabSh.fSynMemo.Highlighter).SelectWord := MyTabSh.SelectWord;
-  MyTabSh.fSynMemo.Repaint;
-  Result := MyTabSh;
+  CustomTabSheet := TCustomTabSheet.Create(PageControl1, MyTabSheetImageList, FormEditor.ImBookMark, FormEditor.PMenuEdit, FileName);
+  CustomTabSheet.Parent := PageControl1;
+  PageControl1.ActivePage := CustomTabSheet;
+  SynCompletion.Editor := CustomTabSheet.FSynMemo;
+  SynHint.Editor := CustomTabSheet.FSynMemo;
+  SynCompletionJump.Editor := CustomTabSheet.FSynMemo;
+  ActiveControl := CustomTabSheet.FSynMemo;
+  TSynCustomAsmHighlighter(CustomTabSheet.FSynMemo.Highlighter).SelectWord := CustomTabSheet.SelectWord;
+  CustomTabSheet.FSynMemo.Repaint;
+  Result := CustomTabSheet;
 
-  if LowerCase(ExtractFileExt(MyTabSh.FilePath)) = '.prt' then
-    MyTabSh.ImageIndex := 36
-  else if LowerCase(ExtractFileExt(MyTabSh.FilePath)) = '.asm' then
-    MyTabSh.ImageIndex := 37
-  else if LowerCase(ExtractFileExt(MyTabSh.FilePath)) = '.inc' then
-    MyTabSh.ImageIndex := 38;
+  if LowerCase(ExtractFileExt(CustomTabSheet.FilePath)) = '.prt' then
+    CustomTabSheet.ImageIndex := 36
+  else if LowerCase(ExtractFileExt(CustomTabSheet.FilePath)) = '.asm' then
+    CustomTabSheet.ImageIndex := 37
+  else if LowerCase(ExtractFileExt(CustomTabSheet.FilePath)) = '.inc' then
+    CustomTabSheet.ImageIndex := 38;
 
   if FindVar then
     PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
@@ -1671,8 +1656,8 @@ end;
 
 procedure TFormEditor.N121Click(Sender: TObject);
 begin
-  if (PageControl1.ActivePage is TMyTabSheet) then
-    FileCompile((PageControl1.ActivePage as TMyTabSheet).FilePath);
+  if (PageControl1.ActivePage is TCustomTabSheet) then
+    FileCompile((PageControl1.ActivePage as TCustomTabSheet).FilePath);
 end;
 
 procedure TFormEditor.N94Click(Sender: TObject);
@@ -1684,10 +1669,10 @@ procedure TFormEditor.N96Click(Sender: TObject);
 var
   I: Integer;
 begin
-  if (PageControl1.ActivePage is TMyTabSheet) then
-    with (PageControl1.ActivePage as TMyTabSheet) do
-      for I := Pred(fSynMemo.Marks.Count) downto 0 do
-        fSynMemo.ClearBookMark(fSynMemo.Marks[I].BookmarkNumber);
+  if (PageControl1.ActivePage is TCustomTabSheet) then
+    with (PageControl1.ActivePage as TCustomTabSheet) do
+      for I := Pred(FSynMemo.Marks.Count) downto 0 do
+        FSynMemo.ClearBookMark(FSynMemo.Marks[I].BookmarkNumber);
 end;
 
 procedure TFormEditor.N99Click(Sender: TObject);
@@ -1702,25 +1687,25 @@ begin
   for I := 1 to PageControl1.PageCount - 1 do
   begin
     PageControl1.ActivePage := PageControl1.Pages[1];
-    MyTabSh := (PageControl1.ActivePage as TMyTabSheet);
+    CustomTabSheet := (PageControl1.ActivePage as TCustomTabSheet);
 
-    if MyTabSh.Modifi then
+    if CustomTabSheet.Modifi then
     begin
-      ActiveControl := MyTabSh.fSynMemo;
-      SynCompletion.Editor := MyTabSh.fSynMemo;
-      SynHint.Editor := MyTabSh.fSynMemo;
-      SynCompletionJump.Editor := MyTabSh.fSynMemo;
-      TMySynAsmSyn(MyTabSh.fSynMemo.Highlighter).SelectWord := MyTabSh.SelectWord;
-      MyTabSh.fSynMemo.Repaint;
+      ActiveControl := CustomTabSheet.FSynMemo;
+      SynCompletion.Editor := CustomTabSheet.FSynMemo;
+      SynHint.Editor := CustomTabSheet.FSynMemo;
+      SynCompletionJump.Editor := CustomTabSheet.FSynMemo;
+      TSynCustomAsmHighlighter(CustomTabSheet.FSynMemo.Highlighter).SelectWord := CustomTabSheet.SelectWord;
+      CustomTabSheet.FSynMemo.Repaint;
 
       PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
 
-      if MessageBoxA(Handle, PAnsiChar(AnsiString('Сохранить файл ' + MyTabSh.Caption + '?')), 'Внимание!', MB_ICONQUESTION or MB_YESNO) = mrYes then
-        MyTabSh.SaveToFile;
+      if MessageBoxA(Handle, PAnsiChar(AnsiString('Сохранить файл ' + CustomTabSheet.Caption + '?')), 'Внимание!', MB_ICONQUESTION or MB_YESNO) = mrYes then
+        CustomTabSheet.SaveToFile;
     end;
 
-    AddLastFiles(MyTabSh.FilePath);
-    MyTabSh.Free;
+    AddLastFiles(CustomTabSheet.FilePath);
+    CustomTabSheet.Free;
   end;
 
   LoadLastFiles;
@@ -1852,12 +1837,12 @@ procedure TFormEditor.ExplorerProjectNewText(Sender: TBaseVirtualTree;
 
     for I := 1 to PageControl1.PageCount - 1 do
     begin
-      Str2 := LowerCase(TMyTabSheet(PageControl1.Pages[I]).fFile);
+      Str2 := LowerCase(TCustomTabSheet(PageControl1.Pages[I]).FFile);
 
       if Str = Str2 then
       begin
         PageControl1.Pages[I].Caption := ExtractFileName(NewName);
-        (PageControl1.Pages[I] as TMyTabSheet).FilePath := NewName;
+        (PageControl1.Pages[I] as TCustomTabSheet).FilePath := NewName;
         Break;
       end;
     end;
@@ -1947,15 +1932,23 @@ procedure TFormEditor.ExplorerVarDblClick(Sender: TObject);
 var
   Data: PExplorerFieldVar;
 begin
-  if (not Assigned(ExplorerVar.FocusedNode)) or (not(PageControl1.ActivePage is TMyTabSheet)) then
+  if (not Assigned(ExplorerVar.FocusedNode)) or (not(PageControl1.ActivePage is TCustomTabSheet)) then
     Exit;
 
   Data := ExplorerVar.GetNodeData(ExplorerVar.FocusedNode);
   if (Data = nil) or (Data^.DirBol) then
     Exit;
 
-  TMyTabSheet(PageControl1.ActivePage).GotoVar(Data^.fBeginChar, Data^.fEndChar);
-  ActiveControl := TMyTabSheet(PageControl1.ActivePage).fSynMemo;
+  if FileExists(Data^.NameNode) then
+  begin
+    if not FindPage(Data^.NameNode) then
+      CreatePage(Data^.NameNode);
+  end
+  else
+  begin
+    TCustomTabSheet(PageControl1.ActivePage).GotoVar(Data^.FBeginChar, Data^.FEndChar);
+    ActiveControl := TCustomTabSheet(PageControl1.ActivePage).FSynMemo;
+  end;
 end;
 
 procedure TFormEditor.ExplorerVarGetHint(Sender: TBaseVirtualTree;
@@ -2021,7 +2014,7 @@ var
   ErrLine: Integer;
   Str, Str2, S: AnsiString;
   F: array [0 .. 255] of AnsiChar;
-  Tab: TMyTabSheet;
+  Tab: TCustomTabSheet;
   I, J: Integer;
 begin
   if FileName = '' then
@@ -2065,20 +2058,20 @@ begin
       Str2 := S;
 
     if FindPage(Str2) then
-      Tab := TMyTabSheet(PageControl1.ActivePage)
+      Tab := TCustomTabSheet(PageControl1.ActivePage)
     else
       Tab := CreatePage(Str2);
 
     if Tab = nil then
       Exit;
 
-    Tab.fSynMemo.GotoLineAndCenter(StrToInt(Str));
-    Tab.fSynMemo.CaretY := StrToInt(Str) + 1;
-    Tab.fSynMemo.CaretY := StrToInt(Str);
-    Tab.fSynMemo.CaretX := 0;
+    Tab.FSynMemo.GotoLineAndCenter(StrToInt(Str));
+    Tab.FSynMemo.CaretY := StrToInt(Str) + 1;
+    Tab.FSynMemo.CaretY := StrToInt(Str);
+    Tab.FSynMemo.CaretX := 0;
 
-    Tab.fSynMemo.ActiveLineColor := clRed;
-    FormEditor.ActiveControl := TMyTabSheet(PageControl1.ActivePage).fSynMemo;
+    Tab.FSynMemo.ActiveLineColor := clRed;
+    FormEditor.ActiveControl := TCustomTabSheet(PageControl1.ActivePage).FSynMemo;
   end
   else if Pos('error', Memo1.Text) <= 0 then
   begin
@@ -2107,7 +2100,7 @@ begin
   if FileExists(S) then
     HexEditor.Open(S);
 
-  (PageControl1.ActivePage as TMyTabSheet).fSynMemo.Repaint;
+  (PageControl1.ActivePage as TCustomTabSheet).FSynMemo.Repaint;
   Memo1.Repaint;
 end;
 
@@ -2121,24 +2114,24 @@ begin
 
   for I := 1 to PageControl1.PageCount - 1 do
   begin
-    Str2 := LowerCase(TMyTabSheet(PageControl1.Pages[I]).FilePath);
+    Str2 := LowerCase(TCustomTabSheet(PageControl1.Pages[I]).FilePath);
 
     if Str = Str2 then
     begin
       PageControl1.ActivePage := PageControl1.Pages[I];
-      ActiveControl := (PageControl1.ActivePage as TMyTabSheet).fSynMemo;
+      ActiveControl := (PageControl1.ActivePage as TCustomTabSheet).FSynMemo;
       Result := True;
 
-      MyTabSh := (PageControl1.ActivePage as TMyTabSheet);
-      SynCompletion.Editor := MyTabSh.fSynMemo;
-      SynHint.Editor := MyTabSh.fSynMemo;
-      SynCompletionJump.Editor := MyTabSh.fSynMemo;
+      CustomTabSheet := (PageControl1.ActivePage as TCustomTabSheet);
+      SynCompletion.Editor := CustomTabSheet.FSynMemo;
+      SynHint.Editor := CustomTabSheet.FSynMemo;
+      SynCompletionJump.Editor := CustomTabSheet.FSynMemo;
 
       if FindVar then
         PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
 
-      TMySynAsmSyn(MyTabSh.fSynMemo.Highlighter).SelectWord := MyTabSh.SelectWord;
-      MyTabSh.fSynMemo.Repaint;
+      TSynCustomAsmHighlighter(CustomTabSheet.FSynMemo.Highlighter).SelectWord := CustomTabSheet.SelectWord;
+      CustomTabSheet.FSynMemo.Repaint;
       Break;
     end;
   end;
@@ -2146,71 +2139,42 @@ end;
 
 procedure TFormEditor.FindStrInFile(const S: AnsiString);
 var
-  F: AnsiString;
   I: Integer;
-  FInc: AnsiString;
   Temp: TStringList;
-  Txt: string;
+  Include: TAsmInclude;
 begin
   /// ////////////////////////////////////////////////
-  if not(PageControl1.ActivePage is TMyTabSheet) then
+  if not(PageControl1.ActivePage is TCustomTabSheet) then
     Exit;
 
-  Scan := TScan.Create;
+  AsmScanner := TAsmScanner.Create;
   Temp := TStringList.Create;
-  with (PageControl1.ActivePage as TMyTabSheet) do
+  with (PageControl1.ActivePage as TCustomTabSheet) do
   begin
     ProcFind(S);
 
-    Txt := fSynMemo.Lines.Text;
-    Scan.FindInclude(Txt);
+    AsmScanner.Run(ProjectPath, FSynMemo.Lines.Text, FormOptions.EditINC.Text);
 
-    ptrInclude := ListInclude;
-    while ptrInclude <> nil do
+    for Include in AsmScanner.ListInclude.ToArray do
     begin
-      FInc := ptrInclude^.fName;
-      if FileExists(ProjectPath + FInc) then
-      begin
-        F := ProjectPath + FInc;
-        F := GetFullPath(F);
-        Temp.LoadFromFile(F);
-      end
-      else if FileExists(GetFullPath(FInc)) then
-      begin
-        F := GetFullPath(FInc);
-        Temp.LoadFromFile(F);
-      end
-      else if FileExists(GetFullPath(ExtractFilePath(fFile) + FInc)) then
-      begin
-        F := GetFullPath(ExtractFilePath(fFile) + FInc);
-        Temp.LoadFromFile(F);
-      end
-      else if FileExists(GetFullPath(FormOptions.EditINC.Text + '\' + FInc))
-      then
-      begin
-        F := GetFullPath(FormOptions.EditINC.Text + '\' + FInc);
-        Temp.LoadFromFile(F);
-      end
+       if FileExists(Include.FName) then
+          Temp.LoadFromFile(Include.FName)
       else
-      begin
-        ptrInclude := ptrInclude^.fNext;
         Continue;
-      end;
 
       if Pos(LowerCase(S), LowerCase(Temp.Text)) > 0 then
       begin
-        if not FindPage(F, False) then
-          CreatePage(F, False);
+        if not FindPage(Include.FName, False) then
+          CreatePage(Include.FName, False);
 
-        with (PageControl1.ActivePage as TMyTabSheet) do
+        with (PageControl1.ActivePage as TCustomTabSheet) do
         begin
           SearchText(S);
           ProcFind(S);
         end;
       end;
-      ptrInclude := ptrInclude^.fNext;
     end;
-    Scan.Free;
+    AsmScanner.Free;
     PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
   end;
   Temp.Free;
@@ -2238,9 +2202,9 @@ begin
     ZeroMemory(@R, SizeOf(R));
 
     R := PageControl1.TabRect(ActPage);
-    if PtInRect(R, HintInfo.CursorPos) and (PageControl1.Pages[ActPage] is TMyTabSheet) then
+    if PtInRect(R, HintInfo.CursorPos) and (PageControl1.Pages[ActPage] is TCustomTabSheet) then
     begin
-      HintStr := TMyTabSheet(PageControl1.Pages[ActPage]).FilePath;
+      HintStr := TCustomTabSheet(PageControl1.Pages[ActPage]).FilePath;
       HintInfo.CursorRect := R;
     end;
   end;
@@ -2322,8 +2286,8 @@ var
   FileName: string;
   Src: TStringList;
 begin
-  if (PageControl1.ActivePage is TMyTabSheet) then
-    with (PageControl1.ActivePage as TMyTabSheet) do
+  if (PageControl1.ActivePage is TCustomTabSheet) then
+    with (PageControl1.ActivePage as TCustomTabSheet) do
     begin
       SaveDialogExport.Filter := SynExporterHTML.DefaultFilter;
       SaveDialogExport.FileName := Copy(Caption, 1, Pos('.', Caption) - 1) + '.html';
@@ -2440,9 +2404,9 @@ end;
 
 procedure TFormEditor.N103Click(Sender: TObject);
 begin
-  if (PageControl1.ActivePage is TMyTabSheet) then
+  if (PageControl1.ActivePage is TCustomTabSheet) then
   begin
-    with (PageControl1.ActivePage as TMyTabSheet) do
+    with (PageControl1.ActivePage as TCustomTabSheet) do
       AddSeparator(1);
 
     PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
@@ -2451,9 +2415,9 @@ end;
 
 procedure TFormEditor.N104Click(Sender: TObject);
 begin
-  if (PageControl1.ActivePage is TMyTabSheet) then
+  if (PageControl1.ActivePage is TCustomTabSheet) then
   begin
-    with (PageControl1.ActivePage as TMyTabSheet) do
+    with (PageControl1.ActivePage as TCustomTabSheet) do
       AddSeparator(2);
 
     PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
@@ -2487,16 +2451,16 @@ end;
 
 procedure TFormEditor.N17Click(Sender: TObject);
 begin
-  if (PageControl1.ActivePage is TMyTabSheet) then
-    (PageControl1.ActivePage as TMyTabSheet).fSynMemo.Undo;
+  if (PageControl1.ActivePage is TCustomTabSheet) then
+    (PageControl1.ActivePage as TCustomTabSheet).FSynMemo.Undo;
 
   PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
 end;
 
 procedure TFormEditor.N18Click(Sender: TObject);
 begin
-  if (PageControl1.ActivePage is TMyTabSheet) then
-    (PageControl1.ActivePage as TMyTabSheet).fSynMemo.Redo;
+  if (PageControl1.ActivePage is TCustomTabSheet) then
+    (PageControl1.ActivePage as TCustomTabSheet).FSynMemo.Redo;
 
   PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
 end;
@@ -2524,11 +2488,11 @@ end;
 
 procedure TFormEditor.N23Click(Sender: TObject);
 begin
-  if not(PageControl1.ActivePage is TMyTabSheet) then
+  if not(PageControl1.ActivePage is TCustomTabSheet) then
     Exit;
   with FormFindInFile do
   begin
-    EditFindText.Text := (PageControl1.ActivePage as TMyTabSheet).SelectedText;
+    EditFindText.Text := (PageControl1.ActivePage as TCustomTabSheet).SelectedText;
     ShowModal;
     if (ModalResult <> mrOk) or (EditFindText.Text = '') then
       Exit;
@@ -2539,19 +2503,19 @@ end;
 
 procedure TFormEditor.N24Click(Sender: TObject);
 begin
-  if (PageControl1.ActivePage is TMyTabSheet) then
-    (PageControl1.ActivePage as TMyTabSheet).ProcFind('');
+  if (PageControl1.ActivePage is TCustomTabSheet) then
+    (PageControl1.ActivePage as TCustomTabSheet).ProcFind('');
 end;
 
 procedure TFormEditor.N26Click(Sender: TObject);
 begin
-  if (PageControl1.ActivePage is TMyTabSheet) then
+  if (PageControl1.ActivePage is TCustomTabSheet) then
     with FormSearchReplaceText do
     begin
       ShowModal;
       if (EditSearchText.Text <> '') and (EditReplaceText.Text <> '') and (ModalResult = mrOk) then
       begin
-        (PageControl1.ActivePage as TMyTabSheet).SearchReplaceText(EditSearchText.Text, EditReplaceText.Text);
+        (PageControl1.ActivePage as TCustomTabSheet).SearchReplaceText(EditSearchText.Text, EditReplaceText.Text);
         PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
       end;
     end;
@@ -2631,8 +2595,8 @@ end;
 
 procedure TFormEditor.N33Click(Sender: TObject);
 begin
-  if (PageControl1.ActivePage is TMyTabSheet) then
-    (PageControl1.ActivePage as TMyTabSheet).SaveToFile;
+  if (PageControl1.ActivePage is TCustomTabSheet) then
+    (PageControl1.ActivePage as TCustomTabSheet).SaveToFile;
 end;
 
 procedure TFormEditor.N34Click(Sender: TObject);
@@ -2650,28 +2614,28 @@ procedure TFormEditor.N37Click(Sender: TObject);
 var
   I: Integer;
 begin
-  if (PageControl1.ActivePage is TMyTabSheet) then
+  if (PageControl1.ActivePage is TCustomTabSheet) then
   begin
-    MyTabSh := (PageControl1.ActivePage as TMyTabSheet);
-    if MyTabSh.Modifi then
-      if MessageBoxA(Handle, PAnsiChar(AnsiString('Сохранить файл ' + MyTabSh.Caption + '?')), 'Внимание!', MB_ICONQUESTION or MB_YESNO) = mrYes then
-        MyTabSh.SaveToFile;
+    CustomTabSheet := (PageControl1.ActivePage as TCustomTabSheet);
+    if CustomTabSheet.Modifi then
+      if MessageBoxA(Handle, PAnsiChar(AnsiString('Сохранить файл ' + CustomTabSheet.Caption + '?')), 'Внимание!', MB_ICONQUESTION or MB_YESNO) = mrYes then
+        CustomTabSheet.SaveToFile;
 
     I := PageControl1.ActivePageIndex;
-    MyTabSh.Free;
+    CustomTabSheet.Free;
     PageControl1.ActivePageIndex := I - 1;
 
-    if (PageControl1.ActivePage is TMyTabSheet) then
+    if (PageControl1.ActivePage is TCustomTabSheet) then
     begin
-      MyTabSh := (PageControl1.ActivePage as TMyTabSheet);
+      CustomTabSheet := (PageControl1.ActivePage as TCustomTabSheet);
 
-      ActiveControl := MyTabSh.fSynMemo;
-      SynCompletion.Editor := MyTabSh.fSynMemo;
-      SynHint.Editor := MyTabSh.fSynMemo;
-      SynCompletionJump.Editor := MyTabSh.fSynMemo;
+      ActiveControl := CustomTabSheet.FSynMemo;
+      SynCompletion.Editor := CustomTabSheet.FSynMemo;
+      SynHint.Editor := CustomTabSheet.FSynMemo;
+      SynCompletionJump.Editor := CustomTabSheet.FSynMemo;
 
-      TMySynAsmSyn(MyTabSh.fSynMemo.Highlighter).SelectWord := MyTabSh.SelectWord;
-      MyTabSh.fSynMemo.Repaint;
+      TSynCustomAsmHighlighter(CustomTabSheet.FSynMemo.Highlighter).SelectWord := CustomTabSheet.SelectWord;
+      CustomTabSheet.FSynMemo.Repaint;
 
       PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
     end
@@ -2680,7 +2644,7 @@ begin
       ExplorerVar.Clear;
     end;
 
-    AddLastFiles(MyTabSh.FilePath);
+    AddLastFiles(CustomTabSheet.FilePath);
     LoadLastFiles;
   end;
 end;
@@ -2820,16 +2784,16 @@ procedure TFormEditor.N50Click(Sender: TObject);
   begin
     for I := 1 to PageControl1.PageCount - 1 do
     begin
-      if LowerCase(FindName) = LowerCase(TMyTabSheet(PageControl1.Pages[I]).FilePath) then
+      if LowerCase(FindName) = LowerCase(TCustomTabSheet(PageControl1.Pages[I]).FilePath) then
       begin
-        if (PageControl1.Pages[I] as TMyTabSheet).Modifi then
+        if (PageControl1.Pages[I] as TCustomTabSheet).Modifi then
         begin
-          S := 'Сохранить файл ' + (PageControl1.Pages[I] as TMyTabSheet).Caption + '?';
+          S := 'Сохранить файл ' + (PageControl1.Pages[I] as TCustomTabSheet).Caption + '?';
           if MessageBoxA(Handle, PAnsiChar(S), 'Внимание!', MB_ICONQUESTION or MB_YESNO) = mrYes then
-            (PageControl1.Pages[I] as TMyTabSheet).SaveToFile;
+            (PageControl1.Pages[I] as TCustomTabSheet).SaveToFile;
         end;
 
-        (PageControl1.Pages[I] as TMyTabSheet).Free;
+        (PageControl1.Pages[I] as TCustomTabSheet).Free;
         PageControl1.ActivePageIndex := I - 1;
         Break;
       end;
@@ -2860,17 +2824,17 @@ end;
 
 procedure TFormEditor.N54Click(Sender: TObject);
 begin
-  if (PageControl1.ActivePage is TMyTabSheet) then
-    Clipboard.AsText := (PageControl1.ActivePage as TMyTabSheet).fFile;
+  if (PageControl1.ActivePage is TCustomTabSheet) then
+    Clipboard.AsText := (PageControl1.ActivePage as TCustomTabSheet).FFile;
 end;
 
 procedure TFormEditor.N55Click(Sender: TObject);
 var
   S: AnsiString;
 begin
-  if (PageControl1.ActivePage is TMyTabSheet) then
+  if (PageControl1.ActivePage is TCustomTabSheet) then
   begin
-    S := (PageControl1.ActivePage as TMyTabSheet).FilePath;
+    S := (PageControl1.ActivePage as TCustomTabSheet).FilePath;
     ShellExecuteA(Handle, 'OPEN', 'EXPLORER', PAnsiChar('/select, ' + S), '', SW_NORMAL);
   end;
 end;
@@ -2882,9 +2846,9 @@ end;
 
 procedure TFormEditor.N60Click(Sender: TObject);
 begin
-  if (PageControl1.ActivePage is TMyTabSheet) then
+  if (PageControl1.ActivePage is TCustomTabSheet) then
   begin
-    with (PageControl1.ActivePage as TMyTabSheet) do
+    with (PageControl1.ActivePage as TCustomTabSheet) do
       AddOrDelComment();
 
     PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
@@ -2893,9 +2857,9 @@ end;
 
 procedure TFormEditor.N66Click(Sender: TObject);
 begin
-  if (PageControl1.ActivePage is TMyTabSheet) then
+  if (PageControl1.ActivePage is TCustomTabSheet) then
   begin
-    with (PageControl1.ActivePage as TMyTabSheet) do
+    with (PageControl1.ActivePage as TCustomTabSheet) do
       AddOrDelSpace();
 
     PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
@@ -2904,9 +2868,9 @@ end;
 
 procedure TFormEditor.N67Click(Sender: TObject);
 begin
-  if (PageControl1.ActivePage is TMyTabSheet) then
+  if (PageControl1.ActivePage is TCustomTabSheet) then
   begin
-    with (PageControl1.ActivePage as TMyTabSheet) do
+    with (PageControl1.ActivePage as TCustomTabSheet) do
       AddOrDelSpace(False);
 
     PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
@@ -2915,8 +2879,8 @@ end;
 
 procedure TFormEditor.N72Click(Sender: TObject);
 begin
-  if (PageControl1.ActivePage is TMyTabSheet) then
-    with (PageControl1.ActivePage as TMyTabSheet) do
+  if (PageControl1.ActivePage is TCustomTabSheet) then
+    with (PageControl1.ActivePage as TCustomTabSheet) do
     begin
       RegisterSymbol();
 
@@ -2926,8 +2890,8 @@ end;
 
 procedure TFormEditor.N73Click(Sender: TObject);
 begin
-  if (PageControl1.ActivePage is TMyTabSheet) then
-    with (PageControl1.ActivePage as TMyTabSheet) do
+  if (PageControl1.ActivePage is TCustomTabSheet) then
+    with (PageControl1.ActivePage as TCustomTabSheet) do
     begin
       RegisterSymbol(False);
 
@@ -2937,8 +2901,8 @@ end;
 
 procedure TFormEditor.N78Click(Sender: TObject);
 begin
-  if (PageControl1.ActivePage is TMyTabSheet) then
-    (PageControl1.ActivePage as TMyTabSheet).BFindNext(nil);
+  if (PageControl1.ActivePage is TCustomTabSheet) then
+    (PageControl1.ActivePage as TCustomTabSheet).BFindNext(nil);
 end;
 
 procedure TFormEditor.N79Click(Sender: TObject);
@@ -2997,12 +2961,12 @@ var
   I, J, K, B: Integer;
   C: AnsiChar;
 begin
-  if not(PageControl1.ActivePage is TMyTabSheet) then
+  if not(PageControl1.ActivePage is TCustomTabSheet) then
     Exit;
 
-  with (PageControl1.ActivePage as TMyTabSheet) do
+  with (PageControl1.ActivePage as TCustomTabSheet) do
   begin
-    S := fSynMemo.Lines.Strings[fSynMemo.CaretY - 1];
+    S := FSynMemo.Lines.Strings[FSynMemo.CaretY - 1];
     S := DelComent(S);
 
     if (S = '') or (Pos('include', LowerCase(S)) <= 0) then
@@ -3022,7 +2986,7 @@ begin
       S := GetFullPath(S2);
       if not FileExists(S) then
       begin
-        S := ExtractFilePath((PageControl1.ActivePage as TMyTabSheet).FilePath);
+        S := ExtractFilePath((PageControl1.ActivePage as TCustomTabSheet).FilePath);
         S := GetFullPath(S + Trim(S2));
         if not FileExists(S) then
         begin
@@ -3040,222 +3004,65 @@ end;
 
 procedure TFormEditor.GotoVar(VarName: string);
 var
-  S2: string;
-  Tab: TMyTabSheet;
+  CustomTab: TCustomTabSheet;
+  AsmIntruction: TAsmIntruction;
 begin
-  if (PageControl1.ActivePage is TMyTabSheet) then
-    with (PageControl1.ActivePage as TMyTabSheet) do
+  if (PageControl1.ActivePage is TCustomTabSheet) then
+    with (PageControl1.ActivePage as TCustomTabSheet) do
     begin
       if VarName = '' then
         Exit;
 
-      S2 := fSynMemo.Text;
-      Scan := TScan.Create;
-      Scan.FindInclude(S2);
-      Scan.FindVar(ProjectPath, FormOptions.EditINC.Text);
-      Scan.BeginScan(S2);
+      AsmScanner := TAsmScanner.Create;
+      AsmScanner.Run(ProjectPath, FSynMemo.Text, FormOptions.EditINC.Text);
 
-      case Scan.FindVarNameAndPath(VarName) of
-        tkImport:
-          begin
-            if ptrImport^.FInc = nil then
-            begin
-              SelectText(ptrImport^.fBeginChar, ptrImport^.fEndChar);
-            end
-            else
-            begin
-              if FindPage(ptrImport^.FInc^.fName) then
-                Tab := TMyTabSheet(PageControl1.ActivePage)
-              else
-                Tab := CreatePage(ptrImport^.FInc^.fName);
+      AsmIntruction := AsmScanner.FindInstructionByName(VarName);
+      if AsmIntruction <> nil then
+      begin
+        if AsmIntruction.FInclude = nil then
+        begin
+          SelectText(AsmIntruction.FBeginChar, AsmIntruction.FEndChar);
+        end
+        else
+        begin
+          if FindPage(AsmIntruction.FInclude.FName) then
+            CustomTab := TCustomTabSheet(PageControl1.ActivePage)
+          else
+            CustomTab := CreatePage(AsmIntruction.FInclude.FName);
 
-              Tab.SelectText(ptrImport^.fBeginChar, ptrImport^.fEndChar);
-            end;
-          end;
-
-        tkInterface:
-          begin
-            if ptrInterface^.FInc = nil then
-            begin
-              SelectText(ptrInterface^.fBeginChar, ptrInterface^.fEndChar);
-            end
-            else
-            begin
-              if FindPage(ptrInterface^.FInc^.fName) then
-                Tab := TMyTabSheet(PageControl1.ActivePage)
-              else
-                Tab := CreatePage(ptrInterface^.FInc^.fName);
-
-              Tab.SelectText(ptrInterface^.fBeginChar, ptrInterface^.fEndChar);
-            end;
-          end;
-
-        tkMacro:
-          begin
-            if ptrMacro^.FInc = nil then
-            begin
-              SelectText(ptrMacro^.fBeginChar, ptrMacro^.fEndChar);
-            end
-            else
-            begin
-              if FindPage(ptrMacro^.FInc^.fName) then
-                Tab := TMyTabSheet(PageControl1.ActivePage)
-              else
-                Tab := CreatePage(ptrMacro^.FInc^.fName);
-
-              Tab.SelectText(ptrMacro^.fBeginChar, ptrMacro^.fEndChar);
-            end;
-          end;
-
-        tkStruct:
-          begin
-            if ptrStruct^.FInc = nil then
-            begin
-              SelectText(ptrStruct^.fBeginChar, ptrStruct^.fEndChar);
-            end
-            else
-            begin
-              if FindPage(ptrStruct^.FInc^.fName) then
-                Tab := TMyTabSheet(PageControl1.ActivePage)
-              else
-                Tab := CreatePage(ptrStruct^.FInc^.fName);
-
-              Tab.SelectText(ptrStruct^.fBeginChar, ptrStruct^.fEndChar);
-            end;
-          end;
-
-        tkStruc:
-          begin
-            if ptrStruc^.FInc = nil then
-            begin
-              SelectText(ptrStruc^.fBeginChar, ptrStruc^.fEndChar);
-            end
-            else
-            begin
-              if FindPage(ptrStruc^.FInc^.fName) then
-                Tab := TMyTabSheet(PageControl1.ActivePage)
-              else
-                Tab := CreatePage(ptrStruc^.FInc^.fName);
-
-              Tab.SelectText(ptrStruc^.fBeginChar, ptrStruc^.fEndChar);
-            end;
-          end;
-
-        tkProc:
-          begin
-            if ptrProc^.FInc = nil then
-            begin
-              SelectText(ptrProc^.fBeginChar, ptrProc^.fEndChar);
-            end
-            else
-            begin
-              if FindPage(ptrProc^.FInc^.fName) then
-                Tab := TMyTabSheet(PageControl1.ActivePage)
-              else
-                Tab := CreatePage(ptrProc^.FInc^.fName);
-
-              Tab.SelectText(ptrProc^.fBeginChar, ptrProc^.fEndChar);
-            end;
-          end;
-
-        tkVar:
-          begin
-           if ptrVar^.FInc = nil then
-            begin
-              SelectText(ptrVar^.fBeginChar, ptrVar^.fEndChar);
-            end
-            else
-            begin
-              if FindPage(ptrVar^.FInc^.fName) then
-                Tab := TMyTabSheet(PageControl1.ActivePage)
-              else
-                Tab := CreatePage(ptrVar^.FInc^.fName);
-
-              Tab.SelectText(ptrVar^.fBeginChar, ptrVar^.fEndChar);
-            end;
-          end;
-
-        tkType:
-          begin
-            if ptrType^.FInc = nil then
-            begin
-              SelectText(ptrType^.fBeginChar, ptrType^.fEndChar);
-            end
-            else
-            begin
-              if FindPage(ptrType^.FInc^.fName) then
-                Tab := TMyTabSheet(PageControl1.ActivePage)
-              else
-                Tab := CreatePage(ptrType^.FInc^.fName);
-
-              Tab.SelectText(ptrType^.fBeginChar, ptrType^.fEndChar);
-            end;
-          end;
-
-        tkLabel:
-          begin
-            if ptrLabel^.FInc = nil then
-            begin
-              SelectText(ptrLabel^.fBeginChar, ptrLabel^.fEndChar);
-            end
-            else
-            begin
-              if FindPage(ptrLabel^.FInc^.fName) then
-                Tab := TMyTabSheet(PageControl1.ActivePage)
-              else
-                Tab := CreatePage(ptrLabel^.FInc^.fName);
-
-              Tab.SelectText(ptrLabel^.fBeginChar, ptrLabel^.fEndChar);
-            end;
-          end;
-
-        tkConst:
-          begin
-            if ptrConst^.FInc = nil then
-            begin
-              SelectText(ptrConst^.fBeginChar, ptrConst^.fEndChar);
-            end
-            else
-            begin
-              if FindPage(ptrConst^.FInc^.fName) then
-                Tab := TMyTabSheet(PageControl1.ActivePage)
-              else
-                Tab := CreatePage(ptrConst^.FInc^.fName);
-
-              Tab.SelectText(ptrConst^.fBeginChar, ptrConst^.fEndChar);
-            end;
-          end;
+          CustomTab.SelectText(AsmIntruction.FBeginChar, AsmIntruction.FEndChar);
+        end;
       end;
 
-      Scan.Free;
-      ActiveControl := TMyTabSheet(PageControl1.ActivePage).fSynMemo;
+      AsmScanner.Free;
+      ActiveControl := TCustomTabSheet(PageControl1.ActivePage).FSynMemo;
     end;
 end;
 
 procedure TFormEditor.N86Click(Sender: TObject);
 begin
-  if (PageControl1.ActivePage is TMyTabSheet) then
-    with (PageControl1.ActivePage as TMyTabSheet) do
-      Self.GotoVar(fSynMemo.WordAtCursor);
+  if (PageControl1.ActivePage is TCustomTabSheet) then
+    with (PageControl1.ActivePage as TCustomTabSheet) do
+      Self.GotoVar(FSynMemo.WordAtCursor);
 end;
 
 procedure TFormEditor.PageControl1Change(Sender: TObject);
 begin
-  if (PageControl1.ActivePage is TMyTabSheet) then
+  if (PageControl1.ActivePage is TCustomTabSheet) then
   begin
-    MyTabSh := (PageControl1.ActivePage as TMyTabSheet);
-    ActiveControl := MyTabSh.fSynMemo;
-    SynCompletion.Editor := MyTabSh.fSynMemo;
-    SynHint.Editor := MyTabSh.fSynMemo;
-    SynCompletionJump.Editor := MyTabSh.fSynMemo;
-    TMySynAsmSyn(MyTabSh.fSynMemo.Highlighter).SelectWord := MyTabSh.SelectWord;
-    MyTabSh.fSynMemo.Repaint;
+    CustomTabSheet := (PageControl1.ActivePage as TCustomTabSheet);
+    ActiveControl := CustomTabSheet.FSynMemo;
+    SynCompletion.Editor := CustomTabSheet.FSynMemo;
+    SynHint.Editor := CustomTabSheet.FSynMemo;
+    SynCompletionJump.Editor := CustomTabSheet.FSynMemo;
+    TSynCustomAsmHighlighter(CustomTabSheet.FSynMemo.Highlighter).SelectWord := CustomTabSheet.SelectWord;
+    CustomTabSheet.FSynMemo.Repaint;
 
     if not LoadProjectB then
     begin
-      ProjectFile := MyTabSh.FilePath;
-      ProjectPath := ExtractFilePath(MyTabSh.FilePath);
-      ProjectName := ExtractFileName(MyTabSh.FilePath);
+      ProjectFile := CustomTabSheet.FilePath;
+      ProjectPath := ExtractFilePath(CustomTabSheet.FilePath);
+      ProjectName := ExtractFileName(CustomTabSheet.FilePath);
       ProjectName := Copy(ProjectName, 1, Pos('.', ProjectName) - 1);
     end;
 
@@ -3281,19 +3088,19 @@ begin
   GetCursorPos(MPos);
   if I > 0 then
   begin
-    MyTabSh := (PageControl1.ActivePage as TMyTabSheet);
-    ActiveControl := MyTabSh.fSynMemo;
-    SynCompletion.Editor := MyTabSh.fSynMemo;
-    SynHint.Editor := MyTabSh.fSynMemo;
-    SynCompletionJump.Editor := MyTabSh.fSynMemo;
-    TMySynAsmSyn(MyTabSh.fSynMemo.Highlighter).SelectWord := MyTabSh.SelectWord;
-    MyTabSh.fSynMemo.Repaint;
+    CustomTabSheet := (PageControl1.ActivePage as TCustomTabSheet);
+    ActiveControl := CustomTabSheet.FSynMemo;
+    SynCompletion.Editor := CustomTabSheet.FSynMemo;
+    SynHint.Editor := CustomTabSheet.FSynMemo;
+    SynCompletionJump.Editor := CustomTabSheet.FSynMemo;
+    TSynCustomAsmHighlighter(CustomTabSheet.FSynMemo.Highlighter).SelectWord := CustomTabSheet.SelectWord;
+    CustomTabSheet.FSynMemo.Repaint;
 
     if not LoadProjectB then
     begin
-      ProjectFile := MyTabSh.FilePath;
-      ProjectPath := ExtractFilePath(MyTabSh.FilePath);
-      ProjectName := ExtractFileName(MyTabSh.FilePath);
+      ProjectFile := CustomTabSheet.FilePath;
+      ProjectPath := ExtractFilePath(CustomTabSheet.FilePath);
+      ProjectName := ExtractFileName(CustomTabSheet.FilePath);
       ProjectName := Copy(ProjectName, 1, Pos('.', ProjectName) - 1);
     end;
 
@@ -3317,8 +3124,8 @@ var
   I: Integer;
 begin
   for I := 1 to PageControl1.PageCount - 1 do
-    if PageControl1.Pages[I] is TMyTabSheet then
-      with (PageControl1.Pages[I] as TMyTabSheet) do
+    if PageControl1.Pages[I] is TCustomTabSheet then
+      with (PageControl1.Pages[I] as TCustomTabSheet) do
       begin
         SaveToFile;
       end;
@@ -3408,10 +3215,10 @@ begin
   Find := False;
   DotCount := 0;
 
-  with (PageControl1.ActivePage as TMyTabSheet) do
+  with (PageControl1.ActivePage as TCustomTabSheet) do
   begin
-    x := fSynMemo.CaretXY.Char - 1;
-    Line := fSynMemo.Lines[fSynMemo.CaretXY.Line - 1];
+    x := FSynMemo.CaretXY.Char - 1;
+    Line := FSynMemo.Lines[FSynMemo.CaretXY.Line - 1];
 
     for I := Length(Line) downto 1 do
       if (Line[I] = '.') and (not(Line[I] in [#1 .. #32])) then
@@ -3464,9 +3271,9 @@ procedure TFormEditor.SynCompletionExecute(Kind: SynCompletionType;
     // S3 := Trim(S3);
   end;
 
-  function stl(const nam: string): string;
+  function SetStyle(const Name: string): string;
   begin
-    Result := '\color{clNavy}\style{-B}' + nam + '\color{clNone}\column{}\style{+B}';
+    Result := '\color{clNavy}\style{-B}' + Name + '\color{clNone}\column{}\style{+B}';
   end;
 
   function IsWordBreakChar(AChar: WideChar): Boolean;
@@ -3502,18 +3309,29 @@ label
   Next;
 
 var
-  S, SVarNam, SVarNam2, Line: string;
-  ptrP: PField;
-  FindB, Dot: Boolean;
+  S, VarName, VarName2, Line: string;
+  IsFound, Dot: Boolean;
   I: Integer;
   C: Char;
-begin
-  with (PageControl1.ActivePage as TMyTabSheet) do
-  begin
-    S := fSynMemo.Lines.Text;
-    Scan := TScan.Create;
 
-    Dot := GetName(GetPreviousToken(fSynMemo), SVarNam, SVarNam2);
+  AsmInclude: TAsmInclude;
+  AsmImport: TAsmImport;
+  AsmInterface: TAsmInterface;
+  AsmType: TAsmType;
+  AsmMacro: TAsmMacro;
+  AsmStruct: TAsmStruct;
+  AsmStruc: TAsmStruc;
+  AsmProcedure: TAsmProcedure;
+  AsmLabel: TAsmLabel;
+  AsmConst: TAsmConst;
+  AsmVar: TAsmVar;
+  Field: TAsmStructField;
+begin
+  with (PageControl1.ActivePage as TCustomTabSheet) do
+  begin
+    AsmScanner := TAsmScanner.Create;
+
+    Dot := GetName(GetPreviousToken(FSynMemo), VarName, VarName2);
 
     with SynCompletion do
     begin
@@ -3521,58 +3339,29 @@ begin
       InsertList.BeginUpdate;
       ClearList;
 
-      if SVarNam2 <> '' then
+      if VarName2 <> '' then
       begin
-        S := fSynMemo.Lines.Text;
-        Scan.FindInclude(S);
-        Scan.FindVar(ProjectPath, FormOptions.EditINC.Text);
-        Scan.BeginScan(S);
+        AsmScanner.Run(ProjectPath, FSynMemo.Lines.Text, FormOptions.EditINC.Text);
+        AsmVar := AsmScanner.FindVarByName(VarName2);
 
-        ptrVar := ListVar;
-        while ptrVar <> nil do
+        if AsmVar <> nil then
         begin
-          if ptrVar^.fName = SVarNam2 then
-            Break;
-          ptrVar := ptrVar^.fNext;
-        end;
-
-        if ptrVar <> nil then
-        begin
-          ptrStruct := ListStruct;
-          while ptrStruct <> nil do
+          AsmStruct := AsmScanner.FindStructByName(AsmVar.FTypeShort);
+          if AsmStruct <> nil then
           begin
-            if ptrStruct^.fName = ptrVar^.fTypeShort then
-              Break;
-            ptrStruct := ptrStruct^.fNext;
-          end;
-
-          if ptrStruct <> nil then
-          begin
-            ptrP := ptrStruct^.fField;
-            while ptrP <> nil do
+            for Field in AsmStruct.FListField.ToArray do
             begin
-              InsertList.Add(ptrP^.fName);
-              ItemList.Add(stl('var') + ptrP^.fName + ':\color{clBlue}\style{-B} ' + ptrP^.fType);
-              ptrP := ptrP^.fNext;
+              InsertList.Add(Field.FName);
+              ItemList.Add(SetStyle('var') + Field.FName + ':\color{clBlue}\style{-B} ' + Field.FType);
             end;
 
-            S := ptrStruct^.fType;
-            ptrStruct := ListStruct;
-            while ptrStruct <> nil do
+            AsmStruct := AsmScanner.FindStructByName(AsmStruct.FType);
+            if AsmStruct <> nil then
             begin
-              if ptrStruct^.fName = S then
-                Break;
-              ptrStruct := ptrStruct^.fNext;
-            end;
-
-            if ptrStruct <> nil then
-            begin
-              ptrP := ptrStruct^.fField;
-              while ptrP <> nil do
+              for Field in AsmStruct.FListField.ToArray do
               begin
-                InsertList.Add(ptrP^.fName);
-                ItemList.Add(stl('var') + ptrP^.fName + ':\color{clBlue}\style{-B} ' + ptrP^.fType);
-                ptrP := ptrP^.fNext;
+                InsertList.Add(Field.FName);
+                ItemList.Add(SetStyle('var') + Field.FName + ':\color{clBlue}\style{-B} ' + Field.FType);
               end;
             end;
           end;
@@ -3580,65 +3369,36 @@ begin
         else
         begin
           S := '';
-          FindB := False;
+          IsFound := False;
 
-          ptrStruct := ListStruct;
-          while ptrStruct <> nil do
+          for AsmStruct in AsmScanner.ListStruct.ToArray do
           begin
-
-            ptrP := ptrStruct^.fField;
-            while ptrP <> nil do
+            Field := AsmStruct.FindFieldByName(VarName2);
+            if Field <> nil then
             begin
-              if ptrP^.fName = SVarNam2 then
-              begin
-                S := ptrP^.fType;
-                FindB := True;
-                Break;
-              end;
-              ptrP := ptrP^.fNext;
-            end;
-
-            if FindB then
+              S := Field.FType;
+              IsFound := True;
               Break;
-
-            ptrStruct := ptrStruct^.fNext;
+            end;
           end;
 
-          ptrStruct := ListStruct;
-          while ptrStruct <> nil do
-          begin
-            if ptrStruct^.fName = S then
-              Break;
-            ptrStruct := ptrStruct^.fNext;
-          end;
+          AsmStruct := AsmScanner.FindStructByName(S);
 
-          if ptrStruct <> nil then
+          if AsmStruct <> nil then
           begin
-            ptrP := ptrStruct^.fField;
-            while ptrP <> nil do
+            for Field in AsmStruct.FListField.ToArray do
             begin
-              InsertList.Add(ptrP^.fName);
-              ItemList.Add(stl('var') + ptrP^.fName + ':\color{clBlue}\style{-B} ' + ptrP^.fType);
-              ptrP := ptrP^.fNext;
+              InsertList.Add(Field.FName);
+              ItemList.Add(SetStyle('var') + Field.FName + ':\color{clBlue}\style{-B} ' + Field.FType);
             end;
 
-            S := ptrStruct^.fType;
-            ptrStruct := ListStruct;
-            while ptrStruct <> nil do
+            AsmStruct := AsmScanner.FindStructByName(AsmStruct.FType);
+            if AsmStruct <> nil then
             begin
-              if ptrStruct^.fName = S then
-                Break;
-              ptrStruct := ptrStruct^.fNext;
-            end;
-
-            if ptrStruct <> nil then
-            begin
-              ptrP := ptrStruct^.fField;
-              while ptrP <> nil do
+              for Field in AsmStruct.FListField.ToArray do
               begin
-                InsertList.Add(ptrP^.fName);
-                ItemList.Add(stl('var') + ptrP^.fName + ':\color{clBlue}\style{-B} ' + ptrP^.fType);
-                ptrP := ptrP^.fNext;
+                InsertList.Add(Field.FName);
+                ItemList.Add(SetStyle('var') + Field.FName + ':\color{clBlue}\style{-B} ' + Field.FType);
               end;
             end;
           end;
@@ -3646,17 +3406,17 @@ begin
 
         ItemList.EndUpdate;
         InsertList.EndUpdate;
-        Scan.Free;
+        AsmScanner.Free;
 
-        if SVarNam <> '' then
-          CurrentInput := SVarNam;
+        if VarName <> '' then
+          CurrentInput := VarName;
         Exit;
       end;
 
       if not Dot then
       begin
-        Line := fSynMemo.Lines[fSynMemo.CaretXY.Line - 1];
-        Line := Copy(Line, 1, fSynMemo.CaretXY.Char - 1);
+        Line := FSynMemo.Lines[FSynMemo.CaretXY.Line - 1];
+        Line := Copy(Line, 1, FSynMemo.CaretXY.Char - 1);
 
         for I := Length(Line) downto 1 do
         begin
@@ -3671,125 +3431,93 @@ begin
       if Dot then
         CurrentInput := '.' + CurrentInput;
 
-      Scan.ClearList;
-      S := fSynMemo.Lines.Text;
-      Scan.FindInclude(S);
-      Scan.FindVar(ProjectPath, FormOptions.EditINC.Text);
-      Scan.BeginScan(S);
+      AsmScanner.Run(ProjectPath, FSynMemo.Lines.Text, FormOptions.EditINC.Text);
 
-      ptrImport := ListImport;
-      while ptrImport <> nil do
+      for AsmImport in AsmScanner.ListImport.ToArray do
       begin
-        InsertList.Add(ptrImport^.fName);
-        ItemList.Add(stl('import') + ptrImport^.fName + '->\color{clBlue}\style{-B} ' + ptrImport^.fData);
-        ptrImport := ptrImport^.fNext;
+        InsertList.Add(AsmImport.FName);
+        ItemList.Add(SetStyle('import') + AsmImport.FName + '->\color{clBlue}\style{-B} ' + AsmImport.FData);
       end;
-      // ***************************************************************************
 
-      ptrInterface := ListInterface;
-      while ptrInterface <> nil do
+      for AsmInterface in AsmScanner.ListInterface.ToArray do
       begin
-        InsertList.Add(ptrInterface^.fName);
-        ItemList.Add(stl('interface') + ptrInterface^.fName);
-        ptrInterface := ptrInterface^.fNext;
+        InsertList.Add(AsmInterface.FName);
+        ItemList.Add(SetStyle('interface') + AsmInterface.FName);
       end;
-      // ***************************************************************************
 
-      ptrType := ListType;
-      while ptrType <> nil do
+      for AsmType in AsmScanner.ListType.ToArray do
       begin
-        InsertList.Add(ptrType^.fName);
-        ItemList.Add(stl('type') + ptrType^.fName + ':\color{clBlue}\style{-B} ' + UpperCase(ptrType^.fTypeName) + ' ' + ptrType^.fTypeLong);
-        ptrType := ptrType^.fNext;
+        InsertList.Add(AsmType.FName);
+        ItemList.Add(SetStyle('type') + AsmType.FName + ':\color{clBlue}\style{-B} ' + UpperCase(AsmType.FTypeName) + ' ' + AsmType.FTypeLong);
       end;
-      // ***************************************************************************
 
-      ptrMacro := ListMacro;
-      while ptrMacro <> nil do
+      for AsmMacro in AsmScanner.ListMacro.ToArray do
       begin
-        InsertList.Add(ptrMacro^.fName);
-        ItemList.Add(stl('macro') + ptrMacro^.fName);
-        ptrMacro := ptrMacro^.fNext;
+        InsertList.Add(AsmMacro.FName);
+        ItemList.Add(SetStyle('macro') + AsmMacro.FName);
       end;
-      // ***************************************************************************
 
-      ptrStruct := ListStruct;
-      while ptrStruct <> nil do
+      for AsmStruct in AsmScanner.ListStruct.ToArray do
       begin
-        InsertList.Add(ptrStruct^.fName);
-        ItemList.Add(stl('struct') + ptrStruct^.fName);
-        ptrStruct := ptrStruct^.fNext;
+        InsertList.Add(AsmStruct.FName);
+        ItemList.Add(SetStyle('struct') + AsmStruct.FName);
       end;
-      // ***************************************************************************
 
-      ptrStruc := ListStruc;
-      while ptrStruc <> nil do
+      for AsmStruc in AsmScanner.ListStruc.ToArray do
       begin
-        InsertList.Add(ptrStruc^.fName);
-        ItemList.Add(stl('struc') + ptrStruc^.fName);
-        ptrStruc := ptrStruc^.fNext;
+        InsertList.Add(AsmStruc.FName);
+        ItemList.Add(SetStyle('struc') + AsmStruc.FName);
       end;
-      // ***************************************************************************
 
-      ptrProc := ListProc;
-      while ptrProc <> nil do
+      for AsmProcedure in AsmScanner.ListProcedure.ToArray do
       begin
-        InsertList.Add(ptrProc^.fName);
-        ItemList.Add(stl('proc') + ptrProc^.fName);
-        // + '\style{-B}(' + ptrProc^.fData + ')');
-        ptrProc := ptrProc^.fNext;
+        InsertList.Add(AsmProcedure.FName);
+        ItemList.Add(SetStyle('proc') + AsmProcedure.FName);
+        // + '\style{-B}(' + AsmProcedure.FData + ')');
       end;
-      // ***************************************************************************
 
-      ptrLabel := ListLabel;
-      while ptrLabel <> nil do
+      for AsmLabel in AsmScanner.ListLabel.ToArray do
       begin
-        InsertList.Add(ptrLabel^.fName);
-        ItemList.Add(stl('label') + ptrLabel^.fName);
-        ptrLabel := ptrLabel^.fNext;
+        InsertList.Add(AsmLabel.FName);
+        ItemList.Add(SetStyle('label') + AsmLabel.FName);
       end;
-      // ***************************************************************************
 
-      ptrConst := ListConst;
-      while ptrConst <> nil do
+      for AsmConst in AsmScanner.ListConst.ToArray do
       begin
-        InsertList.Add(ptrConst^.fName);
-        ItemList.Add(stl('const') + ptrConst^.fName + '\color{clBlue}\style{-B} = ' + ptrConst^.fData);
-        ptrConst := ptrConst^.fNext;
+        InsertList.Add(AsmConst.FName);
+        ItemList.Add(SetStyle('const') + AsmConst.FName + '\color{clBlue}\style{-B} = ' + AsmConst.FData);
       end;
-      // ***************************************************************************
 
-      ptrVar := ListVar;
-      while ptrVar <> nil do
+      for AsmVar in AsmScanner.ListVar.ToArray do
       begin
-        InsertList.Add(ptrVar^.fName);
-        ItemList.Add(stl('var') + ptrVar^.fName + ':\color{clBlue}\style{-B} ' + ptrVar^.fTypeLong);
-        ptrVar := ptrVar^.fNext;
+        InsertList.Add(AsmVar.FName);
+        ItemList.Add(SetStyle('var') + AsmVar.FName + ':\color{clBlue}\style{-B} ' + AsmVar.FTypeLong);
       end;
 
       ItemList.EndUpdate;
       InsertList.EndUpdate;
     end;
-    Scan.Free;
+    AsmScanner.Free;
   end;
 end;
 
 procedure TFormEditor.SynHintExecute(Kind: SynCompletionType; Sender: TObject;
   var CurrentInput: string; var x, y: Integer; var CanExecute: Boolean);
 
-  function stl(const nam: string): string;
+  function SetStyle(const Name: string; FileName: string = ''): string;
   begin
-    Result := '\color{clNavy}\style{+B}' + nam + '\color{clNone}\column{}\style{-B}';
+    Result := '\color{clNavy}\style{+B}' + Name + '\color{clNone}\column{}\style{-B}' + FileName;
   end;
 
 var
-  S, S2: string;
+  Word, FileName: string;
+  AsmIntruction: TAsmIntruction;
 begin
-  if (PageControl1.ActivePage is TMyTabSheet) then
-    with (PageControl1.ActivePage as TMyTabSheet) do
+  if (PageControl1.ActivePage is TCustomTabSheet) then
+    with (PageControl1.ActivePage as TCustomTabSheet) do
     begin
-      S := fSynMemo.WordAtCursor;
-      if S = '' then
+      Word := FSynMemo.WordAtCursor;
+      if Word = '' then
       begin
         CanExecute := False;
         Exit;
@@ -3797,117 +3525,53 @@ begin
 
       SynHint.ClearList;
 
-      S2 := fSynMemo.Text;
-      Scan := TScan.Create;
-      Scan.FindInclude(S2);
-      Scan.FindVar(ProjectPath, FormOptions.EditINC.Text);
-      Scan.BeginScan(S2);
+      AsmScanner := TAsmScanner.Create;
+      AsmScanner.Run(ProjectPath, FSynMemo.Text, FormOptions.EditINC.Text);
 
-      case Scan.FindVarNameAndPath(S) of
-        tkImport:
-          begin
-            if ptrImport^.FInc = nil then
-              S2 := fFile
-            else
-              S2 := ptrImport^.FInc^.fName;
+      AsmIntruction := AsmScanner.FindInstructionByName(Word);
+      if AsmIntruction <> nil then
+      begin
+        if AsmIntruction.FInclude = nil then
+          FileName := ExtractFileName(FFile)
+        else
+          FileName := ExtractFileName(AsmIntruction.FInclude.FName);
 
-            SynHint.ItemList.Text := stl('import ' + ptrImport^.fName + ' -> ' + ptrImport^.fData) + ' - ' + ExtractFileName(S2);
-          end;
-
-        tkInterface:
-          begin
-            if ptrInterface^.FInc = nil then
-              S2 := fFile
-            else
-              S2 := ptrInterface^.FInc^.fName;
-
-            SynHint.ItemList.Text := '\color{clNavy}\style{+B}interface ' + ptrInterface^.fName + '\color{clNone}\style{-B} - ' + ExtractFileName(S2);
-          end;
-
-        tkMacro:
-          begin
-            if ptrMacro^.FInc = nil then
-              S2 := fFile
-            else
-              S2 := ptrMacro^.FInc^.fName;
-
-            SynHint.ItemList.Text := '\color{clNavy}\style{+B}macro ' + ptrMacro^.fName + '\color{clNone}\style{-B} - ' + ExtractFileName(S2);
-          end;
-
-        tkStruct:
-          begin
-            if ptrStruct^.FInc = nil then
-              S2 := fFile
-            else
-              S2 := ptrStruct^.FInc^.fName;
-
-            SynHint.ItemList.Text := '\color{clNavy}\style{+B}struct ' + ptrStruct^.fName + '\color{clNone}\style{-B} - ' + ExtractFileName(S2);
-          end;
-
-        tkStruc:
-          begin
-            if ptrStruc^.FInc = nil then
-              S2 := fFile
-            else
-              S2 := ptrStruc^.FInc^.fName;
-
-            SynHint.ItemList.Text := '\color{clNavy}\style{+B}struc ' + ptrStruc^.fName + '\color{clNone}\style{-B} - ' + ExtractFileName(S2);
-          end;
-
-        tkProc:
-          begin
-            if ptrProc^.FInc = nil then
-              S2 := fFile
-            else
-              S2 := ptrProc^.FInc^.fName;
-
-            SynHint.ItemList.Text := '\color{clNavy}\style{+B}proc ' + ptrProc^.fName + '\color{clNone}\style{-B} - ' + ExtractFileName(S2);
-          end;
-
-        tkVar:
-          begin
-            if ptrVar^.FInc = nil then
-              S2 := fFile
-            else
-              S2 := ptrVar^.FInc^.fName;
-
-            SynHint.ItemList.Text := stl('var ' + ptrVar^.fName + ': ' + ptrVar^.fTypeLong) + ' - ' + ExtractFileName(S2);
-          end;
-
-        tkType:
-          begin
-            if ptrType^.FInc = nil then
-              S2 := fFile
-            else
-              S2 := ptrType^.FInc^.fName;
-
-            SynHint.ItemList.Text := stl('type ' + ptrType^.fName + ': ' + UpperCase(ptrType^.fTypeName) + ' ' + ptrType^.fTypeLong) + ' - ' + ExtractFileName(S2);
-          end;
-
-        tkLabel:
-          begin
-            if ptrLabel^.FInc = nil then
-              S2 := fFile
-            else
-              S2 := ptrLabel^.FInc^.fName;
-
-            SynHint.ItemList.Text := '\color{clNavy}\style{+B}label ' + ptrLabel^.fName + '\color{clNone}\style{-B} - ' + ExtractFileName(S2);
-          end;
-
-        tkConst:
-          begin
-            if ptrConst^.FInc = nil then
-              S2 := fFile
-            else
-              S2 := ptrConst^.FInc^.fName;
-
-            SynHint.ItemList.Text := stl('const ' + ptrConst^.fName + ' = ' + ptrConst^.fData) + ' - ' + ExtractFileName(S2);
-          end;
+        if AsmIntruction is TAsmImport then
+          SynHint.ItemList.Text := SetStyle('import ' + AsmIntruction.FName + ' -> ' + TAsmImport(AsmIntruction).FData, ' - ' + FileName)
+        else
+        if AsmIntruction is TAsmInterface then
+          SynHint.ItemList.Text := SetStyle('interface ' + AsmIntruction.FName, ' - ' + FileName)
+        else
+        if AsmIntruction is TAsmMacro then
+          SynHint.ItemList.Text := SetStyle('macro ' + AsmIntruction.FName, ' - ' + FileName)
+        else
+        if AsmIntruction is TAsmStruct then
+          SynHint.ItemList.Text := SetStyle('struct ' + AsmIntruction.FName, ' - ' + FileName)
+        else
+        if AsmIntruction is TAsmStruc then
+          SynHint.ItemList.Text := SetStyle('struc ' + AsmIntruction.FName, ' - ' + FileName)
+        else
+        if AsmIntruction is TAsmProcedure then
+          SynHint.ItemList.Text := SetStyle('proc ' + AsmIntruction.FName, ' - ' + FileName)
+        else
+        if AsmIntruction is TAsmVar then
+          SynHint.ItemList.Text := SetStyle('var ' + AsmIntruction.FName + ': ' + TAsmVar(AsmIntruction).FTypeLong, ' - ' + FileName)
+        else
+        if AsmIntruction is TAsmType then
+          SynHint.ItemList.Text := SetStyle('type ' + AsmIntruction.FName + ': ' + UpperCase(TAsmType(AsmIntruction).FTypeName) + ' ' + TAsmType(AsmIntruction).FTypeLong, ' - ' + FileName)
+        else
+        if AsmIntruction is TAsmLabel then
+          SynHint.ItemList.Text := SetStyle('label ' + AsmIntruction.FName, ' - ' + FileName)
+        else
+        if AsmIntruction is TAsmConst then
+          SynHint.ItemList.Text := SetStyle('const ' + AsmIntruction.FName + ' = ' + TAsmConst(AsmIntruction).FData, ' - ' + FileName)
+        else
+          CanExecute := False;
+      end
       else
         CanExecute := False;
-      end;
 
-      Scan.Free;
+      AsmScanner.Free;
     end;
 end;
 
@@ -4192,11 +3856,11 @@ begin
 
   for I := 1 to PageControl1.PageCount - 1 do
   begin
-    if LowerCase(FileName) = LowerCase(TMyTabSheet(PageControl1.Pages[I]).FilePath) then
+    if LowerCase(FileName) = LowerCase(TCustomTabSheet(PageControl1.Pages[I]).FilePath) then
     begin
       IsFound := True;
       PageControl1.ActivePage := PageControl1.Pages[I];
-      ActiveControl := (PageControl1.ActivePage as TMyTabSheet).fSynMemo;
+      ActiveControl := (PageControl1.ActivePage as TCustomTabSheet).FSynMemo;
       Break;
     end;
   end;

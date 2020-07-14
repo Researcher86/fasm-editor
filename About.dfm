@@ -1109,7 +1109,7 @@ object FormAbout: TFormAbout
       Top = 13
       Width = 166
       Height = 25
-      Caption = 'FASM Editor 3.3'
+      Caption = 'FASM Editor 3.4'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -21

@@ -16,9 +16,9 @@ program FEditorTests;
 
 uses
   DUnitTestRunner,
-  TestScanAsmFile in 'TestScanAsmFile.pas',
-  ScanAsmFile in '..\Source\ScanAsmFile.pas',
-  Constants in '..\Source\Constants.pas';
+  TestAsmSource in 'TestAsmSource.pas',
+  AsmSource in '..\Source\AsmSource.pas',
+  Utils in '..\Source\Utils.pas';
 
 {$R *.RES}
 

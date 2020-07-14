@@ -10,3 +10,6 @@ Demos/**/*.exe
 img/Res
 .idea/
 Options/
+*.groupproj
+*.dproj
+*.local

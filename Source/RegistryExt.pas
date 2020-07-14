@@ -5,47 +5,47 @@ interface
 uses
   Windows, Registry, Forms;
 
-function RegisterFileType(Ext1, Ext2, Ext3: Boolean): Boolean;
-procedure UnRegisterFileType(Ext1, Ext2, Ext3: Boolean);
+function RegisterFileType(ProjectExt, SourceExt, IncludeExt: Boolean): Boolean;
+procedure UnRegisterFileType(ProjectExt, SourceExt, IncludeExt: Boolean);
 
 implementation
 
 const
-  FileExt1 = '.prt';
-  FileType1 = 'ProjectFile';
-  // BackUpFileType1 = 'FASM Editor BackUp';
+  FileProjectExt = '.prt';
+  FileProjectType = 'ProjectFile';
+  // BackUpFileType = 'FASM Editor BackUp';
 
-  FileExt2 = '.asm';
-  FileType2 = 'SourceFile';
-  // BackUpFileType2 = 'FASM Editor BackUp';
+  FileSourceExt = '.asm';
+  FileSourceType = 'SourceFile';
+  // BackUpFileType = 'FASM Editor BackUp';
 
-  FileExt3 = '.inc';
-  FileType3 = 'IncludeFile';
-  // BackUpFileType3 = 'FASM Editor BackUp';
+  FileIncludeExt = '.inc';
+  FileIncludeType = 'IncludeFile';
+  // BackUpFileType = 'FASM Editor BackUp';
 
-procedure UnRegisterFileType(Ext1, Ext2, Ext3: Boolean);
+procedure UnRegisterFileType(ProjectExt, SourceExt, IncludeExt: Boolean);
 var
   PrevDefaultVal: string;
 begin
   with TRegistry.Create do
   begin
     RootKey := HKEY_CLASSES_ROOT;
-    if Ext1 then
+    if ProjectExt then
     begin
-      DeleteKey(FileExt1);
-      DeleteKey(FileExt1);
+      DeleteKey(FileProjectExt);
+      DeleteKey(FileProjectExt);
     end;
 
-    if Ext2 then
+    if SourceExt then
     begin
-      DeleteKey(FileExt2);
-      DeleteKey(FileExt2);
+      DeleteKey(FileSourceExt);
+      DeleteKey(FileSourceExt);
     end;
 
-    if Ext3 then
+    if IncludeExt then
     begin
-      DeleteKey(FileExt3);
-      DeleteKey(FileExt3);
+      DeleteKey(FileIncludeExt);
+      DeleteKey(FileIncludeExt);
     end;
 
     CloseKey;
@@ -56,7 +56,7 @@ begin
   // SystemParametersInfo(SPI_GETICONTITLELOGFONT, 0, nil, SPIF_SENDWININICHANGE);
 end;
 
-function RegisterFileType(Ext1, Ext2, Ext3: Boolean): Boolean;
+function RegisterFileType(ProjectExt, SourceExt, IncludeExt: Boolean): Boolean;
 var
   PrevDefaultVal: string;
 begin
@@ -64,61 +64,61 @@ begin
   begin
     RootKey := HKEY_CLASSES_ROOT;
 
-    if Ext1 then
+    if ProjectExt then
     begin
-      OpenKey(FileExt1, True);
+      OpenKey(FileProjectExt, True);
       begin
         PrevDefaultVal := ReadString('');
 
-        WriteString('', FileType1);
+        WriteString('', FileProjectType);
         CloseKey;
-        CreateKey(FileType1);
+        CreateKey(FileProjectType);
 
-        OpenKey(FileType1 + '\DefaultIcon', True);
+        OpenKey(FileProjectType + '\DefaultIcon', True);
         WriteString('', Application.ExeName + ',1');
         CloseKey;
 
-        OpenKey(FileType1 + '\shell\open\command', True);
+        OpenKey(FileProjectType + '\shell\open\command', True);
         WriteString('', Application.ExeName + ' "%1"');
 
       end;
     end;
 
-    if Ext2 then
+    if SourceExt then
     begin
-      OpenKey(FileExt2, True);
+      OpenKey(FileSourceExt, True);
       begin
         PrevDefaultVal := ReadString('');
 
-        WriteString('', FileType2);
+        WriteString('', FileSourceType);
         CloseKey;
-        CreateKey(FileType2);
+        CreateKey(FileSourceType);
 
-        OpenKey(FileType2 + '\DefaultIcon', True);
+        OpenKey(FileSourceType + '\DefaultIcon', True);
         WriteString('', Application.ExeName + ',2');
         CloseKey;
 
-        OpenKey(FileType2 + '\shell\open\command', True);
+        OpenKey(FileSourceType + '\shell\open\command', True);
         WriteString('', Application.ExeName + ' "%1"');
 
       end;
     end;
 
-    if Ext3 then
+    if IncludeExt then
     begin
-      OpenKey(FileExt3, True);
+      OpenKey(FileIncludeExt, True);
       begin
         PrevDefaultVal := ReadString('');
 
-        WriteString('', FileType3);
+        WriteString('', FileIncludeType);
         CloseKey;
-        CreateKey(FileType3);
+        CreateKey(FileIncludeType);
 
-        OpenKey(FileType3 + '\DefaultIcon', True);
+        OpenKey(FileIncludeType + '\DefaultIcon', True);
         WriteString('', Application.ExeName + ',3');
         CloseKey;
 
-        OpenKey(FileType3 + '\shell\open\command', True);
+        OpenKey(FileIncludeType + '\shell\open\command', True);
         WriteString('', Application.ExeName + ' "%1"');
 
       end;

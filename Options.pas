@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ComCtrls, StdCtrls, ExtCtrls,
-  Spin, MySynHighlighterAsm, SynEdit, SynMemo, Buttons,
+  Spin, SynHighlighterAsm, SynEdit, SynMemo, Buttons,
   ImgList, System.ImageList;
 
 type
@@ -121,7 +121,7 @@ type
   private
     procedure ApplyOptions(Clos: Boolean = False);
   public
-    MySynAsmSyn: TMySynAsmSyn;
+    MySynAsmSyn: TSynCustomAsmHighlighter;
     constructor Create(AOwner: TComponent); override;
   end;
 
@@ -134,7 +134,7 @@ var
 
 implementation
 
-uses Main, MyTabSheet, RegistryExt;
+uses Main, TabSheet, RegistryExt;
 
 {$R *.dfm}
 
@@ -278,7 +278,7 @@ begin
     RazAttri.Foreground := ColorRaz.Selected;
   end;
 
-  MySynAsmSyn := TMySynAsmSyn.Create(
+  MySynAsmSyn := TSynCustomAsmHighlighter.Create(
     LowerCase(Trim(MemoCommand.Text)),
     LowerCase(Trim(MemoCommandFPU.Text)),
     LowerCase(Trim(MemoDir.Text)),
@@ -290,8 +290,8 @@ begin
 
   with FormEditor.PageControl1 do
     for I := 1 to PageCount - 1 do
-      if Pages[I] is TMyTabSheet then
-        (Pages[I] as TMyTabSheet).UpdateOptions;
+      if Pages[I] is TCustomTabSheet then
+        (Pages[I] as TCustomTabSheet).UpdateOptions;
 
   if (MySynAsmSyn <> nil) and (Clos) then
     Close;

@@ -1,7 +1,7 @@
 object FormEditor: TFormEditor
   Left = 219
   Top = 192
-  Caption = 'FASM Editor 3.3'
+  Caption = 'FASM Editor 3.4'
   ClientHeight = 581
   ClientWidth = 856
   Color = clBtnFace
@@ -291,11 +291,9 @@ object FormEditor: TFormEditor
     OnChange = PageControl1Change
     OnContextPopup = PageControl1ContextPopup
     OnMouseMove = PageControl1MouseMove
-    ExplicitHeight = 367
     object TabSheetGlav: TTabSheet
       Caption = #1053#1072#1095#1072#1083#1100#1085#1072#1103' '#1089#1090#1088#1072#1085#1080#1094#1072
       ImageIndex = 46
-      ExplicitHeight = 338
       object Image1: TImage
         Left = 0
         Top = 0
@@ -6041,7 +6039,6 @@ object FormEditor: TFormEditor
     BevelOuter = bvNone
     Constraints.MinWidth = 20
     TabOrder = 2
-    ExplicitHeight = 367
     object Splitter1: TSplitter
       Left = 0
       Top = 265
@@ -6171,7 +6168,6 @@ object FormEditor: TFormEditor
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 1
-      ExplicitHeight = 99
       object PanelTitleStruc: TPanel
         Left = 0
         Top = 0
@@ -6266,7 +6262,6 @@ object FormEditor: TFormEditor
         OnGetImageIndex = ExplorerVarGetImageIndex
         OnGetHint = ExplorerVarGetHint
         OnGetPopupMenu = ExplorerVarGetPopupMenu
-        ExplicitHeight = 82
         Columns = <>
       end
     end
@@ -6289,7 +6284,6 @@ object FormEditor: TFormEditor
     ParentFont = False
     TabOrder = 3
     TabPosition = tpBottom
-    ExplicitTop = 392
     object TabSheet1: TTabSheet
       Caption = #1057#1086#1086#1073#1097#1077#1085#1080#1103
       ImageIndex = 47
@@ -6314,6 +6308,10 @@ object FormEditor: TFormEditor
     object TabSheet2: TTabSheet
       Caption = #1044#1072#1084#1087
       ImageIndex = 48
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object HexEditor: TATBinHex
         Left = 0
         Top = 0
@@ -7997,7 +7995,7 @@ object FormEditor: TFormEditor
       'jz')
     NbLinesInWindow = 10
     ClSelect = clHotLight
-    Width = 250
+    Width = 350
     EndOfTokenChr = '()[]. '
     TriggerChars = '.'
     Font.Charset = DEFAULT_CHARSET
@@ -8028,7 +8026,7 @@ object FormEditor: TFormEditor
     Left = 40
     Top = 360
     Bitmap = {
-      494C010112001800100010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C010112001800200010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000005000000001002000000000000050
       0000000000000000000000000000000000000000000000000000000000002020
       20215050505D4646464E323232351F1F1F200F0F0F1005050506000000010000
@@ -8701,7 +8699,7 @@ object FormEditor: TFormEditor
     Left = 136
     Top = 368
     Bitmap = {
-      494C010138004800100010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C010138004800200010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       000000000000360000002800000040000000F0000000010020000000000000F0
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -10696,7 +10694,7 @@ object FormEditor: TFormEditor
     Left = 32
     Top = 432
     Bitmap = {
-      494C01010A00180010000E000F00FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C01010A00180020000E000F00FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000380000002D00000001002000000000006027
       0000000000000000000000000000000000000000000000000000027393000273
       9300027393000273930002739300027393000273930002739300027393000273
@@ -11035,7 +11033,7 @@ object FormEditor: TFormEditor
     Left = 96
     Top = 184
     Bitmap = {
-      494C010106000800100010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C010106000800200010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000002000000001002000000000000020
       0000000000000000000000000000000000000000000000000000F7F7F7FFF0F0
       EFFFEEEEEEFFEBEBEBFFE9E9E9FFE8E8E8FFE6E6E6FFE5E5E5FFE4E4E4FFE3E3
@@ -11312,7 +11310,7 @@ object FormEditor: TFormEditor
     Left = 264
     Top = 448
     Bitmap = {
-      494C010103000800100010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C010103000800200010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000D0D0D000D0D0
       D000D0D0D000D0D0D000D0D0D000D0D0D000D0D0D000D0D0D000D0D0D000D0D0
