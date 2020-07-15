@@ -77,6 +77,7 @@ type
     procedure GotoVar(BeginChar: Integer; EndChar: Integer);
     procedure ExportRtf(var Rtf: TSynExporterRTF);
     procedure ExportHtml(var Html: TSynExporterHTML);
+    procedure SelectErrorLine(LineNumber: Integer);
     property FilePath: AnsiString read FFile write SetFile;
     property SynMemoOptions: TSynMemo write SetSynMemoOptions;
     property Modifi: Boolean read GetModifi write SetModifi;
@@ -165,6 +166,16 @@ begin
   end
   else
     Html.ExportAll(FSynMemo.Lines);
+end;
+
+procedure TCustomTabSheet.SelectErrorLine(LineNumber: Integer);
+begin
+  FSynMemo.GotoLineAndCenter(LineNumber);
+  FSynMemo.CaretY := LineNumber + 1;
+  FSynMemo.CaretY := LineNumber;
+  FSynMemo.CaretX := 0;
+
+  FSynMemo.ActiveLineColor := clRed;
 end;
 
 procedure TCustomTabSheet.RegisterSymbol(Big: Boolean = True);

@@ -638,9 +638,6 @@ Coordinates=580,350,84,36
 [SynCompletion]
 Coordinates=713,790,102,36
 
-[Memo1]
-Coordinates=424,144,64,58
-
 [N26]
 Coordinates=664,796,40,36
 
@@ -652,4 +649,7 @@ Coordinates=1425,864,88,36
 
 []
 Coordinates=479,10,78,58
+
+[OutputConsole]
+Coordinates=424,144,64,58
 

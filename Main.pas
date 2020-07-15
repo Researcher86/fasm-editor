@@ -9,7 +9,8 @@ uses
   Buttons, ComCtrls, ExtCtrls, ToolWin, TabSheet, Clipbrd, StrUtils,
   jpeg, VirtualTrees, SynExportHTML, SynEditExport,
   SynExportRTF, SynMemo, SynEditKeyCmds, AsmSource,
-  SynEditTextBuffer, SynEditTypes, ImgList, Grids, System.ImageList, ATBinHex, ATxSHex;
+  SynEditTextBuffer, SynEditTypes, ImgList, Grids, System.ImageList, ATBinHex, ATxSHex,
+  PerlRegEx;
 
 type
   TCopyHexData = (chASM, chCPP, chDelphi);
@@ -196,7 +197,7 @@ type
     PageControlMesAndHex: TPageControl;
     TabSheet1: TTabSheet;
     TabSheet2: TTabSheet;
-    Memo1: TMemo;
+    OutputConsole: TMemo;
     PMenuHex: TPopupMenu;
     N64: TMenuItem;
     ASM1: TMenuItem;
@@ -232,6 +233,7 @@ type
     LabelTitleStruc: TLabel;
     MyTabSheetImageList: TImageList;
     HexEditor: TATBinHex;
+    PerlRegEx: TPerlRegEx;
     procedure FormCreate(Sender: TObject);
     procedure N10Click(Sender: TObject);
     procedure N2Click(Sender: TObject);
@@ -1145,7 +1147,7 @@ begin
     LoadLastFiles;
   end;
 
-  Memo1.Text := '';
+  OutputConsole.Text := '';
   ProjectPath := '';
   ProjectFile := '';
   ProjectName := '';
@@ -2011,14 +2013,14 @@ end;
 
 procedure TFormEditor.FileCompile(const FileName: AnsiString; Run: Boolean = False);
 var
-  ErrLine: Integer;
-  Str, Str2, S: AnsiString;
+  ErrorLine: Integer;
+  OutputFileName, ErrorFileName: AnsiString;
   F: array [0 .. 255] of AnsiChar;
   Tab: TCustomTabSheet;
-  I, J: Integer;
 begin
   if FileName = '' then
     Exit;
+
   if not FileExists(CompilerFASM) then
   begin
     MessageBoxA(Handle, 'Компилятор FASM не найден. Проверти путь в настройках программы!', 'Ошибка!', MB_ICONERROR or MB_OK);
@@ -2032,76 +2034,65 @@ begin
       Exit;
 
   SaveAll;
-  Memo1.Lines.Clear;
-  Memo1.Lines.Add(Compile('"' + CompilerFASM + '"' + '"' + FileName + '"', ExtractFilePath(FileName)));
+  OutputConsole.Lines.Clear;
+  OutputConsole.Lines.Add(Compile('"' + CompilerFASM + '"' + '"' + FileName + '"', ExtractFilePath(FileName)));
 
-  if (Pos('error', Memo1.Text) > 0) { and (Memo1.Lines.Count > 2) } then
+  if (Pos('error', OutputConsole.Text) > 0) then
   begin
-    for I := 0 to Memo1.Lines.Count - 1 do
-      if Pos('[', Memo1.Lines.Strings[I]) > 0 then
-      begin
-        J := I;
-        Break;
-      end;
+    PerlRegEx.RegEx := '(.+?)\s\[(\d+)\]';
+    PerlRegEx.Subject := OutputConsole.Text;
+    if not PerlRegEx.Match then
+      Exit;
 
-    Str := Memo1.Lines.Strings[J];
-    Str2 := Copy(Str, Pos('[', Str) + 1, Length(Str));
-    Str := Copy(Str2, 1, Pos(']', Str2) - 1);
+    ErrorFileName := PerlRegEx.SubExpressions[1];
+    ErrorLine := StrToInt(PerlRegEx.SubExpressions[2]);
 
-    Str2 := Copy(Memo1.Lines.Strings[J], 1, Pos('[', Memo1.Lines.Strings[J]) - 1);
-
-    Str2 := GetFullPath(Str2);
+    ErrorFileName := GetFullPath(ErrorFileName);
     ZeroMemory(@F, 256);
-    GetLongPathNameA(PAnsiChar(Str2), F, 255);
-    S := StrPas(F);
-    if S <> '' then
-      Str2 := S;
+    GetLongPathNameA(PAnsiChar(ErrorFileName), F, 255);
+    if StrPas(F) <> '' then
+      ErrorFileName := StrPas(F);
 
-    if FindPage(Str2) then
+    if FindPage(ErrorFileName) then
       Tab := TCustomTabSheet(PageControl1.ActivePage)
     else
-      Tab := CreatePage(Str2);
+      Tab := CreatePage(ErrorFileName);
 
     if Tab = nil then
       Exit;
 
-    Tab.FSynMemo.GotoLineAndCenter(StrToInt(Str));
-    Tab.FSynMemo.CaretY := StrToInt(Str) + 1;
-    Tab.FSynMemo.CaretY := StrToInt(Str);
-    Tab.FSynMemo.CaretX := 0;
-
-    Tab.FSynMemo.ActiveLineColor := clRed;
-    FormEditor.ActiveControl := TCustomTabSheet(PageControl1.ActivePage).FSynMemo;
+    Tab.SelectErrorLine(ErrorLine);
+    ActiveControl := Tab.FSynMemo;
   end
-  else if Pos('error', Memo1.Text) <= 0 then
+  else if Pos('error', OutputConsole.Text) <= 0 then
   begin
-    if Pos('optional settings', Memo1.Text) <= 0 then
-      Memo1.Lines.Add('Ok!');
+    if Pos('optional settings', OutputConsole.Text) <= 0 then
+      OutputConsole.Lines.Add('Ok!');
 
-    S := ProjectPath + ProjectName;
-    if ((FileExists(S + '.com')) or (FileExists(S + '.exe'))) and (Run) then
+    OutputFileName := ProjectPath + ProjectName;
+    if ((FileExists(OutputFileName + '.com')) or (FileExists(OutputFileName + '.exe'))) and (Run) then
       RunProg;
   end;
 
-  S := ProjectPath + ProjectName;
-  if FileExists(S + '.com') then
-    S := S + '.com'
-  else if FileExists(S + '.exe') then
-    S := S + '.exe'
-  else if FileExists(S + '.dll') then
-    S := S + '.dll'
-  else if FileExists(S + '.obj') then
-    S := S + '.obj'
-  else if FileExists(S + '.bin') then
-    S := S + '.bin'
-  else if FileExists(S + '.sys') then
-    S := S + '.sys';
+  OutputFileName := ProjectPath + ProjectName;
+  if FileExists(OutputFileName + '.com') then
+    OutputFileName := OutputFileName + '.com'
+  else if FileExists(OutputFileName + '.exe') then
+    OutputFileName := OutputFileName + '.exe'
+  else if FileExists(OutputFileName + '.dll') then
+    OutputFileName := OutputFileName + '.dll'
+  else if FileExists(OutputFileName + '.obj') then
+    OutputFileName := OutputFileName + '.obj'
+  else if FileExists(OutputFileName + '.bin') then
+    OutputFileName := OutputFileName + '.bin'
+  else if FileExists(OutputFileName + '.sys') then
+    OutputFileName := OutputFileName + '.sys';
 
-  if FileExists(S) then
-    HexEditor.Open(S);
+  if FileExists(OutputFileName) then
+    HexEditor.Open(OutputFileName);
 
   (PageControl1.ActivePage as TCustomTabSheet).FSynMemo.Repaint;
-  Memo1.Repaint;
+  OutputConsole.Repaint;
 end;
 
 function TFormEditor.FindPage(const FindName: AnsiString; FindVar: Boolean = True): Boolean;
