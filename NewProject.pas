@@ -19,7 +19,7 @@ type
       ProjectName: AnsiString;
       ProjectPath: AnsiString;
     public
-      F: AnsiString;
+      FileName: AnsiString;
     end;
 
 var
@@ -58,19 +58,19 @@ begin
   end;
 
   if ProjectName = 'Window' then
-    F := ProjectPath + 'Window\Window.prt';
+    FileName := ProjectPath + 'Window\Window.prt';
 
   if ProjectName = 'Console' then
-    F := ProjectPath + 'Console\Console.prt';
+    FileName := ProjectPath + 'Console\Console.prt';
 
   if ProjectName = 'DLL' then
-    F := ProjectPath + 'DLL\DLL.prt';
+    FileName := ProjectPath + 'DLL\DLL.prt';
 
   if ProjectName = 'MSCOFF' then
-    F := ProjectPath + 'MSCOFF\MSCOFF.prt';
+    FileName := ProjectPath + 'MSCOFF\MSCOFF.prt';
 
   if ProjectName = 'Driver' then
-    F := ProjectPath + 'Driver\Driver.prt';
+    FileName := ProjectPath + 'Driver\Driver.prt';
 
   Close;
 end;

@@ -125,7 +125,7 @@ end;
 
 procedure TFormListsExportsDLL.FormShow(Sender: TObject);
 begin
-  SynMemoExp.Highlighter := FormOptions.MySynAsmSyn;
+  SynMemoExp.Highlighter := FormOptions.SynCustomAsmHighlighter;
   SynMemoExp.Options := FormOptions.SynMemoOpt.Options;
 end;
 

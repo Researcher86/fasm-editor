@@ -389,7 +389,7 @@ end;
 
 procedure TCustomTabSheet.UpdateOptions;
 begin
-  FSynMemo.Highlighter := FormOptions.MySynAsmSyn;
+  FSynMemo.Highlighter := FormOptions.SynCustomAsmHighlighter;
   FSynMemo.Color := FormOptions.ColorEdit.Selected;
   FSynMemo.ActiveLineColor := FormOptions.ColorBoxActiveLine.Selected;
   FSynMemo.Font := FormOptions.SynMemoOpt.Font;
@@ -539,7 +539,7 @@ begin
     OnGutterClick := SynMemoGutterClick;
     OnGutterGetText := SynMemoGutterGetText;
     OnPlaceBookmark := SynMemoPlaceBookmark;
-    Highlighter := FormOptions.MySynAsmSyn;
+    Highlighter := FormOptions.SynCustomAsmHighlighter;
     SynMemoOptions := FormOptions.SynMemoOpt;
     PopupMenu := PMenuEdit;
   end;

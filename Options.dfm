@@ -58,10 +58,6 @@ object FormOptions: TFormOptions
     TabOrder = 0
     object Prog: TTabSheet
       Caption = #1055#1088#1086#1075#1088#1072#1084#1084#1072
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object GroupBox1: TGroupBox
         Left = 0
         Top = 0
@@ -183,10 +179,6 @@ object FormOptions: TFormOptions
     object CodeEditor: TTabSheet
       Caption = #1056#1077#1076#1072#1082#1090#1086#1088' '#1082#1086#1076#1072
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object PageControl2: TPageControl
         Left = 0
         Top = 0
@@ -491,10 +483,6 @@ object FormOptions: TFormOptions
         object TabSheet5: TTabSheet
           Caption = #1044#1080#1088#1077#1082#1090#1080#1074#1072
           ImageIndex = 4
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object Label9: TLabel
             Left = 9
             Top = 12
@@ -591,10 +579,6 @@ object FormOptions: TFormOptions
         object TabSheet6: TTabSheet
           Caption = #1050#1086#1084#1072#1085#1076#1072
           ImageIndex = 5
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object Label10: TLabel
             Left = 9
             Top = 12
@@ -706,10 +690,6 @@ object FormOptions: TFormOptions
         object TabSheet10: TTabSheet
           Caption = #1050#1086#1084#1072#1085#1076#1072' FPU'
           ImageIndex = 9
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object Label15: TLabel
             Left = 9
             Top = 12
@@ -793,10 +773,6 @@ object FormOptions: TFormOptions
         object TabSheet9: TTabSheet
           Caption = #1055#1088#1099#1078#1086#1082
           ImageIndex = 8
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object Label14: TLabel
             Left = 9
             Top = 12
@@ -858,10 +834,6 @@ object FormOptions: TFormOptions
         object TabSheet7: TTabSheet
           Caption = #1056#1077#1075#1080#1089#1090#1088
           ImageIndex = 6
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object Label11: TLabel
             Left = 9
             Top = 12
@@ -935,10 +907,6 @@ object FormOptions: TFormOptions
         object TabSheet8: TTabSheet
           Caption = #1056#1072#1079#1085#1086#1077
           ImageIndex = 7
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object Label12: TLabel
             Left = 9
             Top = 12
@@ -1049,7 +1017,7 @@ object FormOptions: TFormOptions
     Left = 60
     Top = 185
     Bitmap = {
-      494C0101020008000C0010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C010102000800180010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000003738384E474F4F8421212127000000001818181C010101020000

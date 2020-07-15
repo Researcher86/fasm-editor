@@ -121,16 +121,14 @@ type
   private
     procedure ApplyOptions(Clos: Boolean = False);
   public
-    MySynAsmSyn: TSynCustomAsmHighlighter;
+    SynCustomAsmHighlighter: TSynCustomAsmHighlighter;
+    FasmPath: AnsiString;
+    DbgPath: AnsiString;
     constructor Create(AOwner: TComponent); override;
   end;
 
 var
   FormOptions: TFormOptions;
-
-var
-  CompilerFASM: AnsiString;
-  DBG: AnsiString;
 
 implementation
 
@@ -145,10 +143,10 @@ procedure TFormOptions.ApplyOptions(Clos: Boolean = False);
 var
   I: Integer;
 begin
-  CompilerFASM := EditFASM.Text + ' ';
-  DBG := EditDBG.Text + ' ';
+  FasmPath := EditFASM.Text + ' ';
+  DbgPath := EditDBG.Text + ' ';
 
-  FreeAndNil(MySynAsmSyn);
+  FreeAndNil(SynCustomAsmHighlighter);
 
   SynMemoOpt.Color := ColorEdit.Selected;
   SynMemoOpt.Font := EditFont.Font;
@@ -278,7 +276,7 @@ begin
     RazAttri.Foreground := ColorRaz.Selected;
   end;
 
-  MySynAsmSyn := TSynCustomAsmHighlighter.Create(
+  SynCustomAsmHighlighter := TSynCustomAsmHighlighter.Create(
     LowerCase(Trim(MemoCommand.Text)),
     LowerCase(Trim(MemoCommandFPU.Text)),
     LowerCase(Trim(MemoDir.Text)),
@@ -293,7 +291,7 @@ begin
       if Pages[I] is TCustomTabSheet then
         (Pages[I] as TCustomTabSheet).UpdateOptions;
 
-  if (MySynAsmSyn <> nil) and (Clos) then
+  if (SynCustomAsmHighlighter <> nil) and (Clos) then
     Close;
 end;
 
@@ -373,7 +371,7 @@ begin
 
   WriteComponentResFile(ExtractFilePath(ParamStr(0)) + OptionsFileName, Self);
 
-  FreeAndNil(MySynAsmSyn);
+  FreeAndNil(SynCustomAsmHighlighter);
 end;
 
 procedure TFormOptions.BFontClick(Sender: TObject);

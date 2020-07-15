@@ -356,34 +356,34 @@ type
     procedure GotoVarAtMouse(var Msg: TMessage); message WM_GOTO_VAR_AT_MOUSE;
     procedure EditStatusChange(var Msg: TMessage); message WM_EDIT_STATUS_CHANGE;
     function Compile(const CommandLine: AnsiString; const Dir: AnsiString): AnsiString;
-    procedure FileCompile(const FileName: AnsiString; Run: Boolean = False);
-    function FindPage(const FindName: AnsiString; FindVar: Boolean = True): Boolean;
+    procedure FileCompile(const FileName: AnsiString; IsRun: Boolean = False);
+    function FindPage(const FindName: AnsiString; IsFindVar: Boolean = True): Boolean;
     procedure FindStrInFile(const S: AnsiString);
-    function CreatePage(const FileName: AnsiString; FindVar: Boolean = True): TCustomTabSheet;
-    procedure DestroyAllPage;
-    procedure SaveAll;
-    procedure RunProg;
-    procedure RunDBG;
-    procedure CloseProgAndDBG;
+    function CreatePage(const FileName: AnsiString; IsFindVar: Boolean = True): TCustomTabSheet;
+    procedure DestroyAllPage();
+    procedure SaveAll();
+    procedure RunProg();
+    procedure RunDbg();
+    procedure CloseProgAndDbg();
     procedure PageReset(const FindName: AnsiString; FindVar: Boolean = True);
     function FindNode(const NodeName: AnsiString; Src: Boolean): Boolean;
-    procedure ModifiProjectFile(const PrtFile: AnsiString);
-    procedure SaveProjectAs;
-    procedure LoadLastFiles;
+    procedure ModifiProjectFile(const FileName: AnsiString);
+    procedure SaveProjectAs();
+    procedure LoadLastFiles();
     procedure AddLastFiles(const FileName: string);
     procedure MenuLastFilesClick(Sender: TObject);
-    procedure ClearP;
+    procedure ClearP();
     procedure SetBookMark(Mark: Integer);
     procedure GoBookMark(Mark: Integer);
     procedure CopyHexData(Types: TCopyHexData = chASM);
     procedure ClearHexEditor(HexEditor: TATBinHex);
     procedure GotoVar(VarName: string);
   public
-    procedure CreateExpVar;
+    procedure CreateExplorerVar();
     function LoadProject(const FileName: AnsiString): Boolean;
-    procedure LoadAsmOrIncFile(const FileName: AnsiString);
-    procedure CloseProject;
-    procedure Vis(Status: Boolean);
+    procedure LoadSourceOrIncludeFile(const FileName: AnsiString);
+    procedure CloseProject();
+    procedure SetViseble(Status: Boolean);
     procedure AppShowHint(var HintStr: string; var CanShow: Boolean; var HintInfo: THintInfo);
   end;
 
@@ -403,57 +403,71 @@ const
   HelpPath = 'Help\Win32API\WIN32.HLP';
 
 type
-  PExplorerFieldPrt = ^TExplorerFieldPtr;
+  PExplorerProjectField = ^TExplorerProjectField;
 
-  TExplorerFieldPtr = packed record
+  TExplorerProjectField = packed record
     NameNode: AnsiString;
     FilePath: AnsiString;
-    Project: Boolean;
-    DirBol: Boolean;
-    Source: Boolean;
-    Include: Boolean;
+    IsProject: Boolean;
+    IsDirectory: Boolean;
+    IsSource: Boolean;
+    IsInclude: Boolean;
   end;
 
-  PExplorerFieldVar = ^TExplorerFieldVar;
+  PExplorerVarField = ^TExplorerVarField;
 
-  TExplorerFieldVar = packed record
-    fBeginChar: Integer;
-    fEndChar: Integer;
+  TExplorerVarField = packed record
+    BeginChar: Integer;
+    EndChar: Integer;
     NameNode: AnsiString;
-    DirBol: Boolean;
+    IsDirectory: Boolean;
   end;
 
 var
-  ExpFieldPrt: PExplorerFieldPrt;
-  ExpFieldVar: PExplorerFieldVar;
+  ExplorerProjectField: PExplorerProjectField;
+  ExplorerVarField: PExplorerVarField;
 
-  NodeDirPtr, NodeDirSource, NodeDirInclude, NodeSource, NodeInclude,
-  varNodeDirInclude, varNodeDirImport, varNodeDirInterface, varNodeDirMacro,
-  varNodeDirStruct, varNodeDirProc, varNodeDirLabel, varNodeDirConst,
-  NodeDirVar, NodeDirType, NodeTemp: PVirtualNode;
+  NodeDirectoryProject,
+  NodeDirectorySource,
+  NodeDirectoryInclude,
+  NodeSource,
+  NodeInclude,
+  varNodeDirectoryInclude,
+  varNodeDirectoryImport,
+  varNodeDirectoryInterface,
+  varNodeDirectoryMacro,
+  varNodeDirectoryStruct,
+  varNodeDirectoryProc,
+  varNodeDirectoryLabel,
+  varNodeDirectoryConst,
+  NodeDirectoryVar,
+  NodeDirectoryType,
+  NodeTemp: PVirtualNode;
 
 var
-  RecOpt: packed record fH, fW: Integer;
+  RecOpt: packed record
+    H: Integer;
+    W: Integer;
   end;
-  Ini: TIniFile;
+  IniFile: TIniFile;
   ProjectPath, ProjectFile, ProjectName: AnsiString;
-  LoadProjectB, Dot: Boolean;
+  IsLoadProject, IsDot: Boolean;
 
-  StartupInfoProg, StartupInfoDBG: TStartupInfoA;
-  ProcessInformationProg, ProcessInformationDBG: TProcessInformation;
+  StartupInfoProg, StartupInfoDbg: TStartupInfoA;
+  ProcessInformationProg, ProcessInformationDbg: TProcessInformation;
   ParamRunProg: AnsiString = '';
-  ProgRun, DBGRun: Boolean;
-  ActPage: Integer = -1;
+  IsProgRun, IsDbgRun: Boolean;
+  ActivePageIndex: Integer = -1;
 
 procedure TFormEditor.ClearHexEditor(HexEditor: TATBinHex);
 var
   DefaultValueForHexEditor: TStringStream;
-  data : array[0..303] of Word;
+  Data : array[0..303] of Word;
 begin
-  ZeroMemory(@data, SizeOf(data));
+  ZeroMemory(@Data, SizeOf(Data));
 
   DefaultValueForHexEditor := TStringStream.Create;
-  DefaultValueForHexEditor.Write(data, SizeOf(data));
+  DefaultValueForHexEditor.Write(Data, SizeOf(Data));
 
   HexEditor.OpenStream(DefaultValueForHexEditor);
 end;
@@ -467,7 +481,7 @@ begin
   if not FileExists(HelpFile) then
   begin
     MessageBoxA(Handle, 'Файл справки не найден!', 'Ошибка!', MB_OK or MB_ICONERROR);
-    Exit;
+    Exit();
   end;
 
   if (PageControl1.ActivePage is TCustomTabSheet) then
@@ -482,27 +496,27 @@ end;
 procedure TFormEditor.LoadFile(var Msg: TMessage);
 var
   Buf: array [0 .. 255] of AnsiChar;
-  S, Ext: AnsiString;
+  FileName, Ext: AnsiString;
 begin
   ZeroMemory(@Buf, SizeOf(Buf));
   GlobalGetAtomNameA(Msg.WParam, @Buf, SizeOf(Buf));
   GlobalDeleteAtom(Msg.WParam);
-  S := StrPas(PAnsiChar(@Buf));
+  FileName := StrPas(PAnsiChar(@Buf));
 
-  if (not FileExists(S)) { or (not Assigned(FormEditor)) } then
+  if (not FileExists(FileName)) { or (not Assigned(FormEditor)) } then
     Exit;
 
-  Ext := LowerCase(ExtractFileExt(S));
+  Ext := LowerCase(ExtractFileExt(FileName));
   if Ext = '.prt' then
-    LoadProject(S);
+    LoadProject(FileName);
 
   if (Ext = '.asm') or (Ext = '.inc') then
-    LoadAsmOrIncFile(S);
+    LoadSourceOrIncludeFile(FileName);
 end;
 
 procedure TFormEditor.UpdateExplorerVar(var Msg: TMessage);
 begin
-  CreateExpVar;
+  CreateExplorerVar();
 end;
 
 procedure TFormEditor.GotoVarAtMouse(var Msg: TMessage);
@@ -514,7 +528,7 @@ end;
 
 procedure TFormEditor.EditStatusChange(var Msg: TMessage);
 begin
-  SynHint.Deactivate;
+  SynHint.Deactivate();
 end;
 
 procedure TFormEditor.PageReset(const FindName: AnsiString; FindVar: Boolean = True);
@@ -542,14 +556,14 @@ begin
   begin
     if Src then
     begin
-      NodeTemp := GetNext(NodeDirSource);
-      while NodeTemp <> NodeDirInclude do
+      NodeTemp := GetNext(NodeDirectorySource);
+      while NodeTemp <> NodeDirectoryInclude do
       begin
-        ExpFieldPrt := GetNodeData(NodeTemp);
-        if ExpFieldPrt = nil then
+        ExplorerProjectField := GetNodeData(NodeTemp);
+        if ExplorerProjectField = nil then
           Exit;
 
-        if LowerCase(NodeName) = LowerCase(ExpFieldPrt^.NameNode) then
+        if LowerCase(NodeName) = LowerCase(ExplorerProjectField^.NameNode) then
         begin
           Result := True;
           Break;
@@ -559,14 +573,14 @@ begin
     end
     else
     begin
-      NodeTemp := GetNext(NodeDirInclude);
+      NodeTemp := GetNext(NodeDirectoryInclude);
       while NodeTemp <> nil do
       begin
-        ExpFieldPrt := GetNodeData(NodeTemp);
-        if ExpFieldPrt = nil then
+        ExplorerProjectField := GetNodeData(NodeTemp);
+        if ExplorerProjectField = nil then
           Exit;
 
-        if LowerCase(NodeName) = LowerCase(ExpFieldPrt^.NameNode) then
+        if LowerCase(NodeName) = LowerCase(ExplorerProjectField^.NameNode) then
         begin
           Result := True;
           Break;
@@ -577,26 +591,26 @@ begin
   end;
 end;
 
-procedure TFormEditor.ModifiProjectFile(const PrtFile: AnsiString);
+procedure TFormEditor.ModifiProjectFile(const FileName: AnsiString);
 var
   F: TextFile;
-  CountAsm, CountInc: Integer;
+  CountSource, CountInclude: Integer;
 begin
-  if PrtFile = '' then
+  if FileName = '' then
     Exit;
 
-  AssignFile(F, PrtFile);
+  AssignFile(F, FileName);
 {$I-}
   Rewrite(F);
 {$I+}
   if IOResult = 0 then
     with ExplorerProject do
     begin
-      NodeTemp := GetNext(NodeDirSource);
-      ExpFieldPrt := GetNodeData(NodeTemp);
+      NodeTemp := GetNext(NodeDirectorySource);
+      ExplorerProjectField := GetNodeData(NodeTemp);
       Writeln(F, '; FASM Editor');
       Writeln(F);
-      Writeln(F, 'include ', '"', ExpFieldPrt^.NameNode, '"');
+      Writeln(F, 'include ', '"', ExplorerProjectField^.NameNode, '"');
       Writeln(F);
       Writeln(F, 'if 2 * 2 = 5');
       Writeln(F, '[options]');
@@ -604,44 +618,44 @@ begin
       Writeln(F, '  countInc=', 0);
       Writeln(F, '[asm]');
 
-      NodeTemp := GetNext(NodeDirSource);
-      CountAsm := 1;
-      while NodeTemp <> NodeDirInclude do
+      NodeTemp := GetNext(NodeDirectorySource);
+      CountSource := 1;
+      while NodeTemp <> NodeDirectoryInclude do
       begin
-        ExpFieldPrt := GetNodeData(NodeTemp);
-        Writeln(F, '  asm', CountAsm, '=', '"', ExtractFileName(ExpFieldPrt^.NameNode), '"');
+        ExplorerProjectField := GetNodeData(NodeTemp);
+        Writeln(F, '  asm', CountSource, '=', '"', ExtractFileName(ExplorerProjectField^.NameNode), '"');
         NodeTemp := GetNext(NodeTemp);
-        Inc(CountAsm);
+        Inc(CountSource);
       end;
 
       Writeln(F, '[inc]');
-      NodeTemp := GetNext(NodeDirInclude);
-      CountInc := 1;
+      NodeTemp := GetNext(NodeDirectoryInclude);
+      CountInclude := 1;
       while NodeTemp <> nil do
       begin
-        ExpFieldPrt := GetNodeData(NodeTemp);
-        Writeln(F, '  inc', CountInc, '=', '"', ExtractFileName(ExpFieldPrt^.NameNode), '"');
+        ExplorerProjectField := GetNodeData(NodeTemp);
+        Writeln(F, '  inc', CountInclude, '=', '"', ExtractFileName(ExplorerProjectField^.NameNode), '"');
         NodeTemp := GetNext(NodeTemp);
-        Inc(CountInc);
+        Inc(CountInclude);
       end;
       Writeln(F, 'end if');
       CloseFile(F);
     end
   else
   begin
-    MessageBoxA(Handle, PAnsiChar(AnsiString('Произошла ошибка при записи файла. ' + PrtFile)), 'Ошибка!', MB_ICONERROR or MB_OK);
+    MessageBoxA(Handle, PAnsiChar(AnsiString('Произошла ошибка при записи файла. ' + FileName)), 'Ошибка!', MB_ICONERROR or MB_OK);
     Exit;
   end;
 
-  Dec(CountAsm);
-  Dec(CountInc);
-  Ini := TIniFile.Create(PrtFile);
-  Ini.WriteInteger('options', 'countAsm', CountAsm);
-  Ini.WriteInteger('options', 'countInc', CountInc);
-  Ini.Free;
+  Dec(CountSource);
+  Dec(CountInclude);
+  IniFile := TIniFile.Create(FileName);
+  IniFile.WriteInteger('options', 'countAsm', CountSource);
+  IniFile.WriteInteger('options', 'countInc', CountInclude);
+  IniFile.Free;
 end;
 
-procedure TFormEditor.SaveProjectAs;
+procedure TFormEditor.SaveProjectAs();
   procedure PageResetFile(const FindName, NewName: AnsiString);
   var
     I: Integer;
@@ -662,20 +676,20 @@ var
   S: AnsiString;
 begin
   S := ProjectFile;
-  if (not FileExists(ProjectFile)) or (NodeDirPtr = nil) then
+  if (not FileExists(ProjectFile)) or (NodeDirectoryProject = nil) then
     Exit;
 
   with ExplorerProject do
   begin
-    NodeTemp := NodeDirPtr;
+    NodeTemp := NodeDirectoryProject;
     while NodeTemp <> nil do
     begin
-      ExpFieldPrt := GetNodeData(NodeTemp);
+      ExplorerProjectField := GetNodeData(NodeTemp);
 
-      if not ExpFieldPrt^.DirBol then
-        with ExpFieldPrt^ do
+      if not ExplorerProjectField^.IsDirectory then
+        with ExplorerProjectField^ do
         begin
-          if Project then
+          if IsProject then
           begin
             SaveDialog.Filter := 'Project (*.ptr)|*.prt';
             SaveDialog.FileName := NameNode + '.prt';
@@ -694,7 +708,7 @@ begin
             NameNode := Copy(StrNameNode, 1, Pos('.', StrNameNode) - 1);
             ProjectName := NameNode;
           end
-          else if Source then
+          else if IsSource then
           begin
             SaveDialog.Filter := 'Source (*.asm)|*.asm';
             SaveDialog.FileName := NameNode;
@@ -710,7 +724,7 @@ begin
             NameNode := ExtractFileName(StrFileName);
             PageResetFile(FilePath, StrFileName);
           end
-          else if Include then
+          else if IsInclude then
           begin
             SaveDialog.Filter := 'Include (*.inc)|*.inc';
             SaveDialog.FileName := NameNode;
@@ -776,27 +790,27 @@ begin
       FSynMemo.CommandProcessor(Mark, #0, nil);
 end;
 
-procedure TFormEditor.RunProg;
-  procedure RunProgProc;
+procedure TFormEditor.RunProg();
+  procedure RunProgProc();
   var
-    S: AnsiString;
+    ExecuteFile: AnsiString;
   begin
-    ProgRun := True;
+    IsProgRun := True;
     with FormEditor do
     begin
       ToolButton7.Enabled := False;
       N14.Enabled := False;
     end;
 
-    S := ProjectPath + ProjectName + '.com';
-    if not FileExists(S) then
-      S := ProjectPath + ProjectName + '.exe';
+    ExecuteFile := ProjectPath + ProjectName + '.com';
+    if not FileExists(ExecuteFile) then
+      ExecuteFile := ProjectPath + ProjectName + '.exe';
 
-    S := '"' + S + '"' + ' "' + ParamRunProg + '"';
+    ExecuteFile := '"' + ExecuteFile + '"' + ' "' + ParamRunProg + '"';
 
     CreateProcessA(
       nil,
-      PAnsiChar(S),
+      PAnsiChar(ExecuteFile),
       nil,
       nil,
       False,
@@ -809,7 +823,7 @@ procedure TFormEditor.RunProg;
 
     WaitForMultipleObjects(2, @ProcessInformationProg.hProcess, True, INFINITE);
 
-    ProgRun := False;
+    IsProgRun := False;
     with FormEditor do
     begin
       ToolButton7.Enabled := True;
@@ -827,42 +841,42 @@ begin
   ResumeThread(Thread);
 end;
 
-procedure TFormEditor.RunDBG;
-  procedure RunDBGProc;
+procedure TFormEditor.RunDbg();
+  procedure RunDbgProc();
   var
-    S, S2: AnsiString;
+    ExecuteFile: AnsiString;
     F: array [0 .. 255] of AnsiChar;
   begin
-    DBGRun := True;
+    IsDbgRun := True;
     with FormEditor do
     begin
       ToolButton9.Enabled := False;
       N16.Enabled := False;
     end;
 
-    S := ProjectPath + ProjectName + '.com';
-    if not FileExists(S) then
-      S := ProjectPath + ProjectName + '.exe';
+    ExecuteFile := ProjectPath + ProjectName + '.com';
+    if not FileExists(ExecuteFile) then
+      ExecuteFile := ProjectPath + ProjectName + '.exe';
 
-    if not FileExists(S) then
-      S := ProjectPath + ProjectName + '.dll';
+    if not FileExists(ExecuteFile) then
+      ExecuteFile := ProjectPath + ProjectName + '.dll';
 
     CreateProcessA(
       nil,
-      PAnsiChar('"' + DBG + '"' + ' "' + S + '"'),
+      PAnsiChar('"' + FormOptions.DbgPath + '"' + ' "' + ExecuteFile + '"'),
       nil,
       nil,
       False,
       NORMAL_PRIORITY_CLASS,
       nil,
       nil,
-      StartupInfoDBG,
-      ProcessInformationDBG
+      StartupInfoDbg,
+      ProcessInformationDbg
     );
 
-    WaitForMultipleObjects(2, @ProcessInformationDBG.hProcess, True, INFINITE);
+    WaitForMultipleObjects(2, @ProcessInformationDbg.hProcess, True, INFINITE);
 
-    DBGRun := False;
+    IsDbgRun := False;
     with FormEditor do
     begin
       ToolButton9.Enabled := True;
@@ -875,7 +889,7 @@ var
   Thread: THandle;
   I: Integer;
 begin
-  Thread := CreateThread(0, 0, @RunDBGProc, 0, CREATE_SUSPENDED, Id);
+  Thread := CreateThread(0, 0, @RunDbgProc, 0, CREATE_SUSPENDED, Id);
   SetThreadPriority(Thread, THREAD_PRIORITY_IDLE);
   ResumeThread(Thread);
 end;
@@ -1077,7 +1091,7 @@ end;
 
 procedure TFormEditor.ASM1Click(Sender: TObject);
 begin
-  CopyHexData;
+  CopyHexData();
 end;
 
 procedure TFormEditor.C1Click(Sender: TObject);
@@ -1122,47 +1136,53 @@ end;
 procedure TFormEditor.VirtualStringTree1GetText(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
 var
-  Data: PExplorerFieldPrt;
+  Data: PExplorerProjectField;
 begin
   Data := Sender.GetNodeData(Node);
   CellText := Data^.NameNode;
 end;
 
-procedure TFormEditor.CloseProgAndDBG;
+procedure TFormEditor.CloseProgAndDbg();
 begin
   TerminateProcess(ProcessInformationProg.hProcess, 0);
-  TerminateProcess(ProcessInformationDBG.hProcess, 0);
+  TerminateProcess(ProcessInformationDbg.hProcess, 0);
 end;
 
-procedure TFormEditor.CloseProject;
+procedure TFormEditor.CloseProject();
 begin
-  CloseProgAndDBG;
-  DestroyAllPage;
-  ExplorerProject.Clear;
-  ExplorerVar.Clear;
+  CloseProgAndDbg();
+  DestroyAllPage();
+  ExplorerProject.Clear();
+  ExplorerVar.Clear();
 
-  if LoadProjectB then
+  if IsLoadProject then
   begin
     AddLastFiles(ProjectFile);
-    LoadLastFiles;
+    LoadLastFiles();
   end;
 
   OutputConsole.Text := '';
   ProjectPath := '';
   ProjectFile := '';
   ProjectName := '';
-  LoadProjectB := False;
-  ClearP;
+  IsLoadProject := False;
+  ClearP();
 
   ClearHexEditor(HexEditor);
 end;
 
-procedure TFormEditor.CreateExpVar;
+procedure TFormEditor.CreateExplorerVar();
 var
-  NodeDirIncludeExp, NodeDirImportExp, NodeDirInterfaceExp, NodeDirMacroExp,
-  NodeDirStructExp, NodeDirProcExp, NodeDirLabelExp, NodeDirConstExp,
-  NodeDirVarExp, NodeDirTypeExp: Boolean;
-  Scrol: Integer;
+  NodeDirIncludeExp,
+  NodeDirImportExp,
+  NodeDirInterfaceExp,
+  NodeDirMacroExp,
+  NodeDirStructExp,
+  NodeDirProcExp,
+  NodeDirLabelExp,
+  NodeDirConstExp,
+  NodeDirVarExp,
+  NodeDirTypeExp: Boolean;
 
   AsmInclude: TAsmInclude;
   AsmImport: TAsmImport;
@@ -1187,142 +1207,142 @@ begin
   NodeDirTypeExp := False;
 
   if not(PageControl1.ActivePage is TCustomTabSheet) then
-    Exit;
+    Exit();
 
   with ExplorerVar do
   begin
-    if varNodeDirInclude <> nil then
-      NodeDirIncludeExp := Expanded[varNodeDirInclude];
+    if varNodeDirectoryInclude <> nil then
+      NodeDirIncludeExp := Expanded[varNodeDirectoryInclude];
 
-    if varNodeDirImport <> nil then
-      NodeDirImportExp := Expanded[varNodeDirImport];
+    if varNodeDirectoryImport <> nil then
+      NodeDirImportExp := Expanded[varNodeDirectoryImport];
 
-    if varNodeDirInterface <> nil then
-      NodeDirInterfaceExp := Expanded[varNodeDirInterface];
+    if varNodeDirectoryInterface <> nil then
+      NodeDirInterfaceExp := Expanded[varNodeDirectoryInterface];
 
-    if varNodeDirMacro <> nil then
-      NodeDirMacroExp := Expanded[varNodeDirMacro];
+    if varNodeDirectoryMacro <> nil then
+      NodeDirMacroExp := Expanded[varNodeDirectoryMacro];
 
-    if varNodeDirStruct <> nil then
-      NodeDirStructExp := Expanded[varNodeDirStruct];
+    if varNodeDirectoryStruct <> nil then
+      NodeDirStructExp := Expanded[varNodeDirectoryStruct];
 
-    if varNodeDirProc <> nil then
-      NodeDirProcExp := Expanded[varNodeDirProc];
+    if varNodeDirectoryProc <> nil then
+      NodeDirProcExp := Expanded[varNodeDirectoryProc];
 
-    if varNodeDirLabel <> nil then
-      NodeDirLabelExp := Expanded[varNodeDirLabel];
+    if varNodeDirectoryLabel <> nil then
+      NodeDirLabelExp := Expanded[varNodeDirectoryLabel];
 
-    if varNodeDirConst <> nil then
-      NodeDirConstExp := Expanded[varNodeDirConst];
+    if varNodeDirectoryConst <> nil then
+      NodeDirConstExp := Expanded[varNodeDirectoryConst];
 
-    if NodeDirVar <> nil then
-      NodeDirVarExp := Expanded[NodeDirVar];
+    if NodeDirectoryVar <> nil then
+      NodeDirVarExp := Expanded[NodeDirectoryVar];
 
-    if NodeDirType <> nil then
-      NodeDirTypeExp := Expanded[NodeDirType];
+    if NodeDirectoryType <> nil then
+      NodeDirTypeExp := Expanded[NodeDirectoryType];
   end;
 
-  ExplorerVar.Clear;
-  ExplorerVar.BeginUpdate;
+  ExplorerVar.Clear();
+  ExplorerVar.BeginUpdate();
 
-  varNodeDirInclude := ExplorerVar.AddChild(nil);
-  ExpFieldVar := ExplorerVar.GetNodeData(varNodeDirInclude);
-  with ExpFieldVar^ do
+  varNodeDirectoryInclude := ExplorerVar.AddChild(nil);
+  ExplorerVarField := ExplorerVar.GetNodeData(varNodeDirectoryInclude);
+  with ExplorerVarField^ do
   begin
-    fBeginChar := 0;
-    fEndChar := 0;
+    BeginChar := 0;
+    EndChar := 0;
     NameNode := 'Include';
-    DirBol := True;
+    IsDirectory := True;
   end;
 
-  varNodeDirImport := ExplorerVar.AddChild(nil);
-  ExpFieldVar := ExplorerVar.GetNodeData(varNodeDirImport);
-  with ExpFieldVar^ do
+  varNodeDirectoryImport := ExplorerVar.AddChild(nil);
+  ExplorerVarField := ExplorerVar.GetNodeData(varNodeDirectoryImport);
+  with ExplorerVarField^ do
   begin
-    fBeginChar := 0;
-    fEndChar := 0;
+    BeginChar := 0;
+    EndChar := 0;
     NameNode := 'Import';
-    DirBol := True;
+    IsDirectory := True;
   end;
 
-  varNodeDirInterface := ExplorerVar.AddChild(nil);
-  ExpFieldVar := ExplorerVar.GetNodeData(varNodeDirInterface);
-  with ExpFieldVar^ do
+  varNodeDirectoryInterface := ExplorerVar.AddChild(nil);
+  ExplorerVarField := ExplorerVar.GetNodeData(varNodeDirectoryInterface);
+  with ExplorerVarField^ do
   begin
-    fBeginChar := 0;
-    fEndChar := 0;
+    BeginChar := 0;
+    EndChar := 0;
     NameNode := 'Interface';
-    DirBol := True;
+    IsDirectory := True;
   end;
 
-  NodeDirType := ExplorerVar.AddChild(nil);
-  ExpFieldVar := ExplorerVar.GetNodeData(NodeDirType);
-  with ExpFieldVar^ do
+  NodeDirectoryType := ExplorerVar.AddChild(nil);
+  ExplorerVarField := ExplorerVar.GetNodeData(NodeDirectoryType);
+  with ExplorerVarField^ do
   begin
-    fBeginChar := 0;
-    fEndChar := 0;
+    BeginChar := 0;
+    EndChar := 0;
     NameNode := 'Type';
-    DirBol := True;
+    IsDirectory := True;
   end;
 
-  varNodeDirMacro := ExplorerVar.AddChild(nil);
-  ExpFieldVar := ExplorerVar.GetNodeData(varNodeDirMacro);
-  with ExpFieldVar^ do
+  varNodeDirectoryMacro := ExplorerVar.AddChild(nil);
+  ExplorerVarField := ExplorerVar.GetNodeData(varNodeDirectoryMacro);
+  with ExplorerVarField^ do
   begin
-    fBeginChar := 0;
-    fEndChar := 0;
+    BeginChar := 0;
+    EndChar := 0;
     NameNode := 'Macro';
-    DirBol := True;
+    IsDirectory := True;
   end;
 
-  varNodeDirStruct := ExplorerVar.AddChild(nil);
-  ExpFieldVar := ExplorerVar.GetNodeData(varNodeDirStruct);
-  with ExpFieldVar^ do
+  varNodeDirectoryStruct := ExplorerVar.AddChild(nil);
+  ExplorerVarField := ExplorerVar.GetNodeData(varNodeDirectoryStruct);
+  with ExplorerVarField^ do
   begin
-    fBeginChar := 0;
-    fEndChar := 0;
+    BeginChar := 0;
+    EndChar := 0;
     NameNode := 'Struct';
-    DirBol := True;
+    IsDirectory := True;
   end;
 
-  varNodeDirProc := ExplorerVar.AddChild(nil);
-  ExpFieldVar := ExplorerVar.GetNodeData(varNodeDirProc);
-  with ExpFieldVar^ do
+  varNodeDirectoryProc := ExplorerVar.AddChild(nil);
+  ExplorerVarField := ExplorerVar.GetNodeData(varNodeDirectoryProc);
+  with ExplorerVarField^ do
   begin
-    fBeginChar := 0;
-    fEndChar := 0;
+    BeginChar := 0;
+    EndChar := 0;
     NameNode := 'Proc';
-    DirBol := True;
+    IsDirectory := True;
   end;
 
-  varNodeDirLabel := ExplorerVar.AddChild(nil);
-  ExpFieldVar := ExplorerVar.GetNodeData(varNodeDirLabel);
-  with ExpFieldVar^ do
+  varNodeDirectoryLabel := ExplorerVar.AddChild(nil);
+  ExplorerVarField := ExplorerVar.GetNodeData(varNodeDirectoryLabel);
+  with ExplorerVarField^ do
   begin
-    fBeginChar := 0;
-    fEndChar := 0;
+    BeginChar := 0;
+    EndChar := 0;
     NameNode := 'Label';
-    DirBol := True;
+    IsDirectory := True;
   end;
 
-  varNodeDirConst := ExplorerVar.AddChild(nil);
-  ExpFieldVar := ExplorerVar.GetNodeData(varNodeDirConst);
-  with ExpFieldVar^ do
+  varNodeDirectoryConst := ExplorerVar.AddChild(nil);
+  ExplorerVarField := ExplorerVar.GetNodeData(varNodeDirectoryConst);
+  with ExplorerVarField^ do
   begin
-    fBeginChar := 0;
-    fEndChar := 0;
+    BeginChar := 0;
+    EndChar := 0;
     NameNode := 'Const';
-    DirBol := True;
+    IsDirectory := True;
   end;
 
-  NodeDirVar := ExplorerVar.AddChild(nil);
-  ExpFieldVar := ExplorerVar.GetNodeData(NodeDirVar);
-  with ExpFieldVar^ do
+  NodeDirectoryVar := ExplorerVar.AddChild(nil);
+  ExplorerVarField := ExplorerVar.GetNodeData(NodeDirectoryVar);
+  with ExplorerVarField^ do
   begin
-    fBeginChar := 0;
-    fEndChar := 0;
+    BeginChar := 0;
+    EndChar := 0;
     NameNode := 'Var';
-    DirBol := True;
+    IsDirectory := True;
   end;
 
   with (PageControl1.ActivePage as TCustomTabSheet) do
@@ -1332,14 +1352,14 @@ begin
 
     for AsmInclude in AsmScanner.ListInclude.ToArray do
     begin
-      NodeTemp := ExplorerVar.AddChild(varNodeDirInclude);
-      ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
-      with ExpFieldVar^ do
+      NodeTemp := ExplorerVar.AddChild(varNodeDirectoryInclude);
+      ExplorerVarField := ExplorerVar.GetNodeData(NodeTemp);
+      with ExplorerVarField^ do
       begin
-        fBeginChar := AsmInclude.FBeginChar;
-        fEndChar := AsmInclude.FEndChar;
+        BeginChar := AsmInclude.FBeginChar;
+        EndChar := AsmInclude.FEndChar;
         NameNode := AsmInclude.FName;
-        DirBol := False;
+        IsDirectory := False;
       end;
     end;
 
@@ -1347,14 +1367,14 @@ begin
     begin
       if AsmImport.FInclude = nil then
       begin
-        NodeTemp := ExplorerVar.AddChild(varNodeDirImport);
-        ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
-        with ExpFieldVar^ do
+        NodeTemp := ExplorerVar.AddChild(varNodeDirectoryImport);
+        ExplorerVarField := ExplorerVar.GetNodeData(NodeTemp);
+        with ExplorerVarField^ do
         begin
-          fBeginChar := AsmImport.FBeginChar;
-          fEndChar := AsmImport.FEndChar;
+          BeginChar := AsmImport.FBeginChar;
+          EndChar := AsmImport.FEndChar;
           NameNode := AsmImport.FName + ' -> ' + AsmImport.FData;
-          DirBol := False;
+          IsDirectory := False;
         end;
       end;
     end;
@@ -1363,14 +1383,14 @@ begin
     begin
       if AsmInterface.FInclude = nil then
       begin
-        NodeTemp := ExplorerVar.AddChild(varNodeDirInterface);
-        ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
-        with ExpFieldVar^ do
+        NodeTemp := ExplorerVar.AddChild(varNodeDirectoryInterface);
+        ExplorerVarField := ExplorerVar.GetNodeData(NodeTemp);
+        with ExplorerVarField^ do
         begin
-          fBeginChar := AsmInterface.FBeginChar;
-          fEndChar := AsmInterface.FEndChar;
+          BeginChar := AsmInterface.FBeginChar;
+          EndChar := AsmInterface.FEndChar;
           NameNode := AsmInterface.FName;
-          DirBol := False;
+          IsDirectory := False;
         end;
       end;
     end;
@@ -1379,14 +1399,14 @@ begin
     begin
       if AsmType.FInclude = nil then
       begin
-        NodeTemp := ExplorerVar.AddChild(NodeDirType);
-        ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
-        with ExpFieldVar^ do
+        NodeTemp := ExplorerVar.AddChild(NodeDirectoryType);
+        ExplorerVarField := ExplorerVar.GetNodeData(NodeTemp);
+        with ExplorerVarField^ do
         begin
-          fBeginChar := AsmType.FBeginChar;
-          fEndChar := AsmType.FEndChar;
+          BeginChar := AsmType.FBeginChar;
+          EndChar := AsmType.FEndChar;
           NameNode := AsmType.FName + ': ' + UpperCase(AsmType.FTypeName) + ' ' + AsmType.FTypeLong;
-          DirBol := False;
+          IsDirectory := False;
         end;
       end;
     end;
@@ -1395,14 +1415,14 @@ begin
     begin
       if AsmMacro.FInclude = nil then
       begin
-        NodeTemp := ExplorerVar.AddChild(varNodeDirMacro);
-        ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
-        with ExpFieldVar^ do
+        NodeTemp := ExplorerVar.AddChild(varNodeDirectoryMacro);
+        ExplorerVarField := ExplorerVar.GetNodeData(NodeTemp);
+        with ExplorerVarField^ do
         begin
-          fBeginChar := AsmMacro.FBeginChar;
-          fEndChar := AsmMacro.FEndChar;
+          BeginChar := AsmMacro.FBeginChar;
+          EndChar := AsmMacro.FEndChar;
           NameNode := AsmMacro.FName;
-          DirBol := False;
+          IsDirectory := False;
         end;
       end;
     end;
@@ -1411,14 +1431,14 @@ begin
     begin
       if AsmStruct.FInclude = nil then
       begin
-        NodeTemp := ExplorerVar.AddChild(varNodeDirStruct);
-        ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
-        with ExpFieldVar^ do
+        NodeTemp := ExplorerVar.AddChild(varNodeDirectoryStruct);
+        ExplorerVarField := ExplorerVar.GetNodeData(NodeTemp);
+        with ExplorerVarField^ do
         begin
-          fBeginChar := AsmStruct.FBeginChar;
-          fEndChar := AsmStruct.FEndChar;
+          BeginChar := AsmStruct.FBeginChar;
+          EndChar := AsmStruct.FEndChar;
           NameNode := AsmStruct.FName;
-          DirBol := False;
+          IsDirectory := False;
         end;
       end;
     end;
@@ -1427,15 +1447,15 @@ begin
     begin
       if AsmProcedure.FInclude = nil then
       begin
-        NodeTemp := ExplorerVar.AddChild(varNodeDirProc);
-        ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
-        with ExpFieldVar^ do
+        NodeTemp := ExplorerVar.AddChild(varNodeDirectoryProc);
+        ExplorerVarField := ExplorerVar.GetNodeData(NodeTemp);
+        with ExplorerVarField^ do
         begin
-          fBeginChar := AsmProcedure.FBeginChar;
-          fEndChar := AsmProcedure.FEndChar;
+          BeginChar := AsmProcedure.FBeginChar;
+          EndChar := AsmProcedure.FEndChar;
           NameNode := AsmProcedure.FName;
           // + '(' + ptrProc^.fData + ')';
-          DirBol := False;
+          IsDirectory := False;
         end;
       end;
     end;
@@ -1444,14 +1464,14 @@ begin
     begin
       if AsmLabel.FInclude = nil then
       begin
-        NodeTemp := ExplorerVar.AddChild(varNodeDirLabel);
-        ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
-        with ExpFieldVar^ do
+        NodeTemp := ExplorerVar.AddChild(varNodeDirectoryLabel);
+        ExplorerVarField := ExplorerVar.GetNodeData(NodeTemp);
+        with ExplorerVarField^ do
         begin
-          fBeginChar := AsmLabel.FBeginChar;
-          fEndChar := AsmLabel.FEndChar;
+          BeginChar := AsmLabel.FBeginChar;
+          EndChar := AsmLabel.FEndChar;
           NameNode := AsmLabel.FName;
-          DirBol := False;
+          IsDirectory := False;
         end;
       end;
     end;
@@ -1460,14 +1480,14 @@ begin
     begin
       if AsmConst.FInclude = nil then
       begin
-        NodeTemp := ExplorerVar.AddChild(varNodeDirConst);
-        ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
-        with ExpFieldVar^ do
+        NodeTemp := ExplorerVar.AddChild(varNodeDirectoryConst);
+        ExplorerVarField := ExplorerVar.GetNodeData(NodeTemp);
+        with ExplorerVarField^ do
         begin
-          fBeginChar := AsmConst.FBeginChar;
-          fEndChar := AsmConst.FEndChar;
+          BeginChar := AsmConst.FBeginChar;
+          EndChar := AsmConst.FEndChar;
           NameNode := AsmConst.FName + ' = ' + AsmConst.FData;
-          DirBol := False;
+          IsDirectory := False;
         end;
       end;
     end;
@@ -1476,58 +1496,58 @@ begin
     begin
       if AsmVar.FInclude = nil then
       begin
-        NodeTemp := ExplorerVar.AddChild(NodeDirVar);
-        ExpFieldVar := ExplorerVar.GetNodeData(NodeTemp);
-        with ExpFieldVar^ do
+        NodeTemp := ExplorerVar.AddChild(NodeDirectoryVar);
+        ExplorerVarField := ExplorerVar.GetNodeData(NodeTemp);
+        with ExplorerVarField^ do
         begin
-          fBeginChar := AsmVar.FBeginChar;
-          fEndChar := AsmVar.FEndChar;
+          BeginChar := AsmVar.FBeginChar;
+          EndChar := AsmVar.FEndChar;
           NameNode := AsmVar.FName + ': ' + AsmVar.FTypeLong;
-          DirBol := False;
+          IsDirectory := False;
         end;
       end;
     end;
   end;
 
-  AsmScanner.Free;
+  AsmScanner.Free();
 
-  ExplorerVar.EndUpdate;
+  ExplorerVar.EndUpdate();
 
   with ExplorerVar do
   begin
-    if (varNodeDirInclude <> nil) and NodeDirIncludeExp then
-      Expanded[varNodeDirInclude] := NodeDirIncludeExp;
+    if (varNodeDirectoryInclude <> nil) and NodeDirIncludeExp then
+      Expanded[varNodeDirectoryInclude] := NodeDirIncludeExp;
 
-    if (varNodeDirImport <> nil) and NodeDirImportExp then
-      Expanded[varNodeDirImport] := NodeDirImportExp;
+    if (varNodeDirectoryImport <> nil) and NodeDirImportExp then
+      Expanded[varNodeDirectoryImport] := NodeDirImportExp;
 
-    if (varNodeDirInterface <> nil) and NodeDirInterfaceExp then
-      Expanded[varNodeDirInterface] := NodeDirInterfaceExp;
+    if (varNodeDirectoryInterface <> nil) and NodeDirInterfaceExp then
+      Expanded[varNodeDirectoryInterface] := NodeDirInterfaceExp;
 
-    if (varNodeDirMacro <> nil) and NodeDirMacroExp then
-      Expanded[varNodeDirMacro] := NodeDirMacroExp;
+    if (varNodeDirectoryMacro <> nil) and NodeDirMacroExp then
+      Expanded[varNodeDirectoryMacro] := NodeDirMacroExp;
 
-    if (varNodeDirStruct <> nil) and NodeDirStructExp then
-      Expanded[varNodeDirStruct] := NodeDirStructExp;
+    if (varNodeDirectoryStruct <> nil) and NodeDirStructExp then
+      Expanded[varNodeDirectoryStruct] := NodeDirStructExp;
 
-    if (varNodeDirProc <> nil) and NodeDirProcExp then
-      Expanded[varNodeDirProc] := NodeDirProcExp;
+    if (varNodeDirectoryProc <> nil) and NodeDirProcExp then
+      Expanded[varNodeDirectoryProc] := NodeDirProcExp;
 
-    if (varNodeDirLabel <> nil) and NodeDirLabelExp then
-      Expanded[varNodeDirLabel] := NodeDirLabelExp;
+    if (varNodeDirectoryLabel <> nil) and NodeDirLabelExp then
+      Expanded[varNodeDirectoryLabel] := NodeDirLabelExp;
 
-    if (varNodeDirConst <> nil) and NodeDirConstExp then
-      Expanded[varNodeDirConst] := NodeDirConstExp;
+    if (varNodeDirectoryConst <> nil) and NodeDirConstExp then
+      Expanded[varNodeDirectoryConst] := NodeDirConstExp;
 
-    if (NodeDirVar <> nil) and NodeDirVarExp then
-      Expanded[NodeDirVar] := NodeDirVarExp;
+    if (NodeDirectoryVar <> nil) and NodeDirVarExp then
+      Expanded[NodeDirectoryVar] := NodeDirVarExp;
 
-    if (NodeDirType <> nil) and NodeDirTypeExp then
-      Expanded[NodeDirType] := NodeDirTypeExp;
+    if (NodeDirectoryType <> nil) and NodeDirTypeExp then
+      Expanded[NodeDirectoryType] := NodeDirTypeExp;
   end;
 end;
 
-function TFormEditor.CreatePage(const FileName: AnsiString; FindVar: Boolean = True): TCustomTabSheet;
+function TFormEditor.CreatePage(const FileName: AnsiString; IsFindVar: Boolean = True): TCustomTabSheet;
 begin
   Result := nil;
   if ExtractFileExt(FileName) = '' then
@@ -1536,7 +1556,7 @@ begin
   if not FileExists(FileName) then
   begin
     MessageBoxA(Handle, PAnsiChar(AnsiString('Файл ' + ExtractFileName(FileName) + ' не найден!')), 'Ошибка!', MB_ICONERROR or MB_OK);
-    Exit;
+    Exit();
   end;
 
   CustomTabSheet := TCustomTabSheet.Create(PageControl1, MyTabSheetImageList, FormEditor.ImBookMark, FormEditor.PMenuEdit, FileName);
@@ -1557,7 +1577,7 @@ begin
   else if LowerCase(ExtractFileExt(CustomTabSheet.FilePath)) = '.inc' then
     CustomTabSheet.ImageIndex := 38;
 
-  if FindVar then
+  if IsFindVar then
     PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
 end;
 
@@ -1679,10 +1699,10 @@ end;
 
 procedure TFormEditor.N99Click(Sender: TObject);
 begin
-  HexEditor.SelectAll;
+  HexEditor.SelectAll();
 end;
 
-procedure TFormEditor.DestroyAllPage;
+procedure TFormEditor.DestroyAllPage();
 var
   I: Integer;
 begin
@@ -1698,30 +1718,30 @@ begin
       SynHint.Editor := CustomTabSheet.FSynMemo;
       SynCompletionJump.Editor := CustomTabSheet.FSynMemo;
       TSynCustomAsmHighlighter(CustomTabSheet.FSynMemo.Highlighter).SelectWord := CustomTabSheet.SelectWord;
-      CustomTabSheet.FSynMemo.Repaint;
+      CustomTabSheet.FSynMemo.Repaint();
 
       PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
 
       if MessageBoxA(Handle, PAnsiChar(AnsiString('Сохранить файл ' + CustomTabSheet.Caption + '?')), 'Внимание!', MB_ICONQUESTION or MB_YESNO) = mrYes then
-        CustomTabSheet.SaveToFile;
+        CustomTabSheet.SaveToFile();
     end;
 
     AddLastFiles(CustomTabSheet.FilePath);
-    CustomTabSheet.Free;
+    CustomTabSheet.Free();
   end;
 
-  LoadLastFiles;
+  LoadLastFiles();
 end;
 
 procedure TFormEditor.DLL1Click(Sender: TObject);
 begin
-  FormListsExportsDLL.ShowModal;
+  FormListsExportsDLL.ShowModal();
 end;
 
 procedure TFormEditor.ExplorerProjectDblClick(Sender: TObject);
 var
   Ext: AnsiString;
-  Data: PExplorerFieldPrt;
+  Data: PExplorerProjectField;
 begin
   if not Assigned(ExplorerProject.FocusedNode) then
     Exit;
@@ -1744,22 +1764,22 @@ end;
 procedure TFormEditor.ExplorerProjectEditing(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
 var
-  Data: PExplorerFieldPrt;
+  Data: PExplorerProjectField;
 begin
   Data := Sender.GetNodeData(Node);
   with Data^ do
-    Allowed := not DirBol;
+    Allowed := not IsDirectory;
 end;
 
 procedure TFormEditor.ExplorerProjectGetHint(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex;
   var LineBreakStyle: TVTTooltipLineBreakStyle; var HintText: string);
 var
-  Data: PExplorerFieldPrt;
+  Data: PExplorerProjectField;
 begin
   Data := Sender.GetNodeData(Node);
   with Data^ do
-    if DirBol then
+    if IsDirectory then
       Exit
     else
     begin
@@ -1772,23 +1792,23 @@ procedure TFormEditor.ExplorerProjectGetImageIndex(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
   var Ghosted: Boolean; var ImageIndex: TImageIndex);
 var
-  Data: PExplorerFieldPrt;
+  Data: PExplorerProjectField;
 begin
   if Kind <> ikState then Exit;
 
   Data := Sender.GetNodeData(Node);
   with Data^ do
   begin
-    if Project then
+    if IsProject then
       ImageIndex := 0
-    else if DirBol then
+    else if IsDirectory then
       if not Sender.Expanded[Node] then
         ImageIndex := 1
       else
         ImageIndex := 2
-    else if Source then
+    else if IsSource then
       ImageIndex := 3
-    else if Include then
+    else if IsInclude then
       ImageIndex := 4;
   end;
 end;
@@ -1797,7 +1817,7 @@ procedure TFormEditor.ExplorerProjectGetPopupMenu(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; const P: TPoint;
   var AskParent: Boolean; var PopupMenu: TPopupMenu);
 var
-  Data: PExplorerFieldPrt;
+  Data: PExplorerProjectField;
 begin
   PopupMenu := nil;
   AskParent := False;
@@ -1805,9 +1825,9 @@ begin
   if (Data <> nil) then
     with Data^ do
     begin
-      if Project then
+      if IsProject then
         PopupMenu := PMenuProject
-      else if not DirBol then
+      else if not IsDirectory then
         PopupMenu := PMenuSrcInc;
     end;
 end;
@@ -1822,7 +1842,7 @@ procedure TFormEditor.ExplorerProjectlGetText(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
   var CellText: string);
 var
-  Data: PExplorerFieldPrt;
+  Data: PExplorerProjectField;
 begin
   Data := Sender.GetNodeData(Node);
   CellText := Data^.NameNode;
@@ -1833,15 +1853,10 @@ procedure TFormEditor.ExplorerProjectNewText(Sender: TBaseVirtualTree;
   procedure RenamePage(const FindName, NewName: AnsiString);
   var
     I: Integer;
-    Str, Str2: AnsiString;
   begin
-    Str := LowerCase(FindName);
-
     for I := 1 to PageControl1.PageCount - 1 do
     begin
-      Str2 := LowerCase(TCustomTabSheet(PageControl1.Pages[I]).FFile);
-
-      if Str = Str2 then
+      if LowerCase(FindName) = LowerCase(TCustomTabSheet(PageControl1.Pages[I]).FFile) then
       begin
         PageControl1.Pages[I].Caption := ExtractFileName(NewName);
         (PageControl1.Pages[I] as TCustomTabSheet).FilePath := NewName;
@@ -1851,7 +1866,7 @@ procedure TFormEditor.ExplorerProjectNewText(Sender: TBaseVirtualTree;
   end;
 
 var
-  Data: PExplorerFieldPrt;
+  Data: PExplorerProjectField;
   NewName, Str, Ext: AnsiString;
 begin
   if NewText = '' then
@@ -1865,7 +1880,7 @@ begin
   Data := Sender.GetNodeData(Node);
   with Data^ do
   begin
-    if Project then
+    if IsProject then
     begin
       NewName := ExtractFilePath(FilePath) + NewText + '.prt';
       ProjectName := NewText;
@@ -1900,24 +1915,24 @@ procedure TFormEditor.ExplorerProjectPaintText(Sender: TBaseVirtualTree;
   const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
   TextType: TVSTTextType);
 var
-  Data: PExplorerFieldPrt;
+  Data: PExplorerProjectField;
 begin
   Data := Sender.GetNodeData(Node);
   with Data^ do
-    if Project then
+    if IsProject then
       TargetCanvas.Font.Style := [fsBold];
 end;
 
 procedure TFormEditor.ExplorerVar1Click(Sender: TObject);
 var
-  Data: PExplorerFieldVar;
+  Data: PExplorerVarField;
   S, S2: string;
   I: Integer;
 begin
   Data := ExplorerVar.GetNodeData(ExplorerVar.FocusedNode);
 
-  if (Data = nil) or (Data^.DirBol) then
-    Exit;
+  if (Data = nil) or (Data^.IsDirectory) then Exit();
+
   S := Data^.NameNode;
 
   for I := 1 to Length(S) do
@@ -1932,14 +1947,12 @@ end;
 
 procedure TFormEditor.ExplorerVarDblClick(Sender: TObject);
 var
-  Data: PExplorerFieldVar;
+  Data: PExplorerVarField;
 begin
-  if (not Assigned(ExplorerVar.FocusedNode)) or (not(PageControl1.ActivePage is TCustomTabSheet)) then
-    Exit;
+  if (not Assigned(ExplorerVar.FocusedNode)) or (not(PageControl1.ActivePage is TCustomTabSheet)) then Exit();
 
   Data := ExplorerVar.GetNodeData(ExplorerVar.FocusedNode);
-  if (Data = nil) or (Data^.DirBol) then
-    Exit;
+  if (Data = nil) or (Data^.IsDirectory) then Exit();
 
   if FileExists(Data^.NameNode) then
   begin
@@ -1948,7 +1961,7 @@ begin
   end
   else
   begin
-    TCustomTabSheet(PageControl1.ActivePage).GotoVar(Data^.FBeginChar, Data^.FEndChar);
+    TCustomTabSheet(PageControl1.ActivePage).GotoVar(Data^.BeginChar, Data^.EndChar);
     ActiveControl := TCustomTabSheet(PageControl1.ActivePage).FSynMemo;
   end;
 end;
@@ -1957,12 +1970,12 @@ procedure TFormEditor.ExplorerVarGetHint(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex;
   var LineBreakStyle: TVTTooltipLineBreakStyle; var HintText: string);
 var
-  Data: PExplorerFieldVar;
+  Data: PExplorerVarField;
 begin
   Data := Sender.GetNodeData(Node);
   with Data^ do
-    if DirBol then
-      Exit
+    if IsDirectory then
+      Exit()
     else
       HintText := NameNode;
 end;
@@ -1971,14 +1984,14 @@ procedure TFormEditor.ExplorerVarGetImageIndex(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
   var Ghosted: Boolean; var ImageIndex: TImageIndex);
 var
-  Data: PExplorerFieldVar;
+  Data: PExplorerVarField;
 begin
   if Kind <> ikState then Exit;
 
   Data := Sender.GetNodeData(Node);
   with Data^ do
   begin
-    if DirBol then
+    if IsDirectory then
       if not Sender.Expanded[Node] then
         ImageIndex := 1
       else
@@ -1992,12 +2005,12 @@ procedure TFormEditor.ExplorerVarGetPopupMenu(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; const P: TPoint;
   var AskParent: Boolean; var PopupMenu: TPopupMenu);
 var
-  Data: PExplorerFieldVar;
+  Data: PExplorerVarField;
 begin
   PopupMenu := nil;
   AskParent := False;
   Data := Sender.GetNodeData(Node);
-  if (Data <> nil) and (not Data^.DirBol) then
+  if (Data <> nil) and (not Data^.IsDirectory) then
     PopupMenu := PMenuExplorerVar;
 end;
 
@@ -2005,44 +2018,43 @@ procedure TFormEditor.ExplorerVarGetText(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
   var CellText: string);
 var
-  Data: PExplorerFieldVar;
+  Data: PExplorerVarField;
 begin
   Data := Sender.GetNodeData(Node);
   CellText := Data^.NameNode;
 end;
 
-procedure TFormEditor.FileCompile(const FileName: AnsiString; Run: Boolean = False);
+procedure TFormEditor.FileCompile(const FileName: AnsiString; IsRun: Boolean = False);
 var
   ErrorLine: Integer;
   OutputFileName, ErrorFileName: AnsiString;
   F: array [0 .. 255] of AnsiChar;
   Tab: TCustomTabSheet;
 begin
-  if FileName = '' then
-    Exit;
+  if FileName = '' then Exit();
 
-  if not FileExists(CompilerFASM) then
+  if not FileExists(FormOptions.FasmPath) then
   begin
     MessageBoxA(Handle, 'Компилятор FASM не найден. Проверти путь в настройках программы!', 'Ошибка!', MB_ICONERROR or MB_OK);
-    Exit;
+    Exit();
   end;
 
-  if (ProgRun) or (DBGRun) then
+  if (IsProgRun) or (IsDbgRun) then
     if (MessageBoxA(Handle, 'Программа запущена. Закрыть?', 'Внимание!', MB_ICONQUESTION or MB_YESNO) = mrYes) then
-      CloseProgAndDBG
+      CloseProgAndDbg()
     else
-      Exit;
+      Exit();
 
-  SaveAll;
-  OutputConsole.Lines.Clear;
-  OutputConsole.Lines.Add(Compile('"' + CompilerFASM + '"' + '"' + FileName + '"', ExtractFilePath(FileName)));
+  SaveAll();
+  OutputConsole.Lines.Clear();
+  OutputConsole.Lines.Add(Compile('"' + FormOptions.FasmPath + '"' + '"' + FileName + '"', ExtractFilePath(FileName)));
 
   if (Pos('error', OutputConsole.Text) > 0) then
   begin
     PerlRegEx.RegEx := '(.+?)\s\[(\d+)\]';
     PerlRegEx.Subject := OutputConsole.Text;
-    if not PerlRegEx.Match then
-      Exit;
+
+    if not PerlRegEx.Match then Exit();
 
     ErrorFileName := PerlRegEx.SubExpressions[1];
     ErrorLine := StrToInt(PerlRegEx.SubExpressions[2]);
@@ -2058,8 +2070,7 @@ begin
     else
       Tab := CreatePage(ErrorFileName);
 
-    if Tab = nil then
-      Exit;
+    if Tab = nil then Exit();
 
     Tab.SelectErrorLine(ErrorLine);
     ActiveControl := Tab.FSynMemo;
@@ -2070,8 +2081,8 @@ begin
       OutputConsole.Lines.Add('Ok!');
 
     OutputFileName := ProjectPath + ProjectName;
-    if ((FileExists(OutputFileName + '.com')) or (FileExists(OutputFileName + '.exe'))) and (Run) then
-      RunProg;
+    if ((FileExists(OutputFileName + '.com')) or (FileExists(OutputFileName + '.exe'))) and (IsRun) then
+      RunProg();
   end;
 
   OutputFileName := ProjectPath + ProjectName;
@@ -2091,23 +2102,19 @@ begin
   if FileExists(OutputFileName) then
     HexEditor.Open(OutputFileName);
 
-  (PageControl1.ActivePage as TCustomTabSheet).FSynMemo.Repaint;
-  OutputConsole.Repaint;
+  (PageControl1.ActivePage as TCustomTabSheet).FSynMemo.Repaint();
+  OutputConsole.Repaint();
 end;
 
-function TFormEditor.FindPage(const FindName: AnsiString; FindVar: Boolean = True): Boolean;
+function TFormEditor.FindPage(const FindName: AnsiString; IsFindVar: Boolean = True): Boolean;
 var
   I: Integer;
-  Str, Str2: AnsiString;
 begin
   Result := False;
-  Str := LowerCase(FindName);
 
   for I := 1 to PageControl1.PageCount - 1 do
   begin
-    Str2 := LowerCase(TCustomTabSheet(PageControl1.Pages[I]).FilePath);
-
-    if Str = Str2 then
+    if LowerCase(FindName) = LowerCase(TCustomTabSheet(PageControl1.Pages[I]).FilePath) then
     begin
       PageControl1.ActivePage := PageControl1.Pages[I];
       ActiveControl := (PageControl1.ActivePage as TCustomTabSheet).FSynMemo;
@@ -2118,11 +2125,11 @@ begin
       SynHint.Editor := CustomTabSheet.FSynMemo;
       SynCompletionJump.Editor := CustomTabSheet.FSynMemo;
 
-      if FindVar then
+      if IsFindVar then
         PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
 
       TSynCustomAsmHighlighter(CustomTabSheet.FSynMemo.Highlighter).SelectWord := CustomTabSheet.SelectWord;
-      CustomTabSheet.FSynMemo.Repaint;
+      CustomTabSheet.FSynMemo.Repaint();
       Break;
     end;
   end;
@@ -2134,9 +2141,7 @@ var
   Temp: TStringList;
   Include: TAsmInclude;
 begin
-  /// ////////////////////////////////////////////////
-  if not(PageControl1.ActivePage is TCustomTabSheet) then
-    Exit;
+  if not(PageControl1.ActivePage is TCustomTabSheet) then Exit();
 
   AsmScanner := TAsmScanner.Create;
   Temp := TStringList.Create;
@@ -2165,15 +2170,15 @@ begin
         end;
       end;
     end;
-    AsmScanner.Free;
+    AsmScanner.Free();
     PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
   end;
-  Temp.Free;
+  Temp.Free();
 end;
 
 procedure TFormEditor.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  CloseProject;
+  CloseProject();
 end;
 
 procedure TFormEditor.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -2192,10 +2197,10 @@ begin
   begin
     ZeroMemory(@R, SizeOf(R));
 
-    R := PageControl1.TabRect(ActPage);
-    if PtInRect(R, HintInfo.CursorPos) and (PageControl1.Pages[ActPage] is TCustomTabSheet) then
+    R := PageControl1.TabRect(ActivePageIndex);
+    if PtInRect(R, HintInfo.CursorPos) and (PageControl1.Pages[ActivePageIndex] is TCustomTabSheet) then
     begin
-      HintStr := TCustomTabSheet(PageControl1.Pages[ActPage]).FilePath;
+      HintStr := TCustomTabSheet(PageControl1.Pages[ActivePageIndex]).FilePath;
       HintInfo.CursorRect := R;
     end;
   end;
@@ -2209,9 +2214,9 @@ begin
   // Ctrl+/
   N60.ShortCut := 16575;
 
-  ExplorerProject.NodeDataSize := SizeOf(TExplorerFieldPtr);
-  ExplorerVar.NodeDataSize := SizeOf(TExplorerFieldVar);
-  Vis(False);
+  ExplorerProject.NodeDataSize := SizeOf(TExplorerProjectField);
+  ExplorerVar.NodeDataSize := SizeOf(TExplorerVarField);
+  SetViseble(False);
 
   if FileExists(ExtractFilePath(ParamStr(0)) + LastFiles) then
     ListBoxFile.Items.LoadFromFile(ExtractFilePath(ParamStr(0)) + LastFiles);
@@ -2221,10 +2226,10 @@ begin
 
   F := TFileStream.Create(ExtractFilePath(ParamStr(0)) + SynCompletionParam, fmOpenRead);
   F.Read(RecOpt, SizeOf(RecOpt));
-  F.Free;
+  F.Free();
 
-  SynCompletion.NbLinesInWindow := RecOpt.fH;
-  SynCompletion.Width := RecOpt.fW;
+  SynCompletion.NbLinesInWindow := RecOpt.H;
+  SynCompletion.Width := RecOpt.W;
 
   ClearHexEditor(HexEditor);
 end;
@@ -2242,8 +2247,8 @@ begin
     ListBoxFile.Items.Clear;
   end;
 
-  RecOpt.fH := SynCompletion.NbLinesInWindow;
-  RecOpt.fW := SynCompletion.Width;
+  RecOpt.H := SynCompletion.NbLinesInWindow;
+  RecOpt.W := SynCompletion.Width;
 
   F := TFileStream.Create(ExtractFilePath(ParamStr(0)) + SynCompletionParam, fmCreate);
   F.Write(RecOpt, SizeOf(RecOpt));
@@ -2252,30 +2257,29 @@ end;
 
 procedure TFormEditor.FormShow(Sender: TObject);
 var
-  S, Ext: AnsiString;
+  FileName, Ext: AnsiString;
 begin
   if ParamCount >= 1 then
   begin
-    S := ParamStr(1);
-    Ext := LowerCase(ExtractFileExt(S));
+    FileName := ParamStr(1);
+    Ext := LowerCase(ExtractFileExt(FileName));
 
     if Ext = '.prt' then
-      LoadProject(S);
+      LoadProject(FileName);
 
     if Ext = '.asm' then
-      LoadAsmOrIncFile(S);
+      LoadSourceOrIncludeFile(FileName);
 
     if Ext = '.inc' then
-      LoadAsmOrIncFile(S);
+      LoadSourceOrIncludeFile(FileName);
   end;
 
-  LoadLastFiles;
+  LoadLastFiles();
 end;
 
 procedure TFormEditor.HTML2Click(Sender: TObject);
 var
   FileName: string;
-  Src: TStringList;
 begin
   if (PageControl1.ActivePage is TCustomTabSheet) then
     with (PageControl1.ActivePage as TCustomTabSheet) do
@@ -2283,8 +2287,7 @@ begin
       SaveDialogExport.Filter := SynExporterHTML.DefaultFilter;
       SaveDialogExport.FileName := Copy(Caption, 1, Pos('.', Caption) - 1) + '.html';
 
-      if not SaveDialogExport.Execute then
-        Exit;
+      if not SaveDialogExport.Execute then Exit();
 
       FileName := SaveDialogExport.FileName;
 
@@ -2298,74 +2301,74 @@ end;
 
 procedure TFormEditor.Include1Click(Sender: TObject);
 var
-  Str: AnsiString;
+  FileName: AnsiString;
   F: TextFile;
 begin
   SaveDialog.Filter := 'Include (*.inc)|*.inc';
   SaveDialog.FileName := 'Include.inc';
   if SaveDialog.Execute then
   begin
-    Str := SaveDialog.FileName;
+    FileName := SaveDialog.FileName;
 
-    AssignFile(F, Str);
+    AssignFile(F, FileName);
 {$I-}
     Rewrite(F);
 {$I+}
     if IOResult <> 0 then
     begin
       MessageBoxA(Handle, 'Произошла ошибка при создании файла.', 'Ошибка!', MB_ICONERROR or MB_OK);
-      Exit;
+      Exit();
     end
     else
       CloseFile(F);
 
-    if FindNode(ExtractFileName(Str), False) then
+    if FindNode(ExtractFileName(FileName), False) then
     begin
-      PageReset(Str);
-      Exit;
+      PageReset(FileName);
+      Exit();
     end;
 
-    ExplorerProject.BeginUpdate;
-    NodeTemp := ExplorerProject.AddChild(NodeDirInclude);
-    ExpFieldPrt := ExplorerProject.GetNodeData(NodeTemp);
-    with ExpFieldPrt^ do
+    ExplorerProject.BeginUpdate();
+    NodeTemp := ExplorerProject.AddChild(NodeDirectoryInclude);
+    ExplorerProjectField := ExplorerProject.GetNodeData(NodeTemp);
+    with ExplorerProjectField^ do
     begin
-      NameNode := ExtractFileName(Str);
-      FilePath := Str;
-      Project := False;
-      DirBol := False;
-      Source := False;
-      Include := True;
+      NameNode := ExtractFileName(FileName);
+      FilePath := FileName;
+      IsProject := False;
+      IsDirectory := False;
+      IsSource := False;
+      IsInclude := True;
     end;
 
-    if FindPage(Str) then
-      PageReset(Str)
+    if FindPage(FileName) then
+      PageReset(FileName)
     else
-      CreatePage(Str);
+      CreatePage(FileName);
 
-    ExplorerProject.FullExpand;
-    ExplorerProject.EndUpdate;
+    ExplorerProject.FullExpand();
+    ExplorerProject.EndUpdate();
     ModifiProjectFile(ProjectFile);
   end;
 end;
 
 procedure TFormEditor.N100Click(Sender: TObject);
 var
-  S: AnsiString;
+  Data: AnsiString;
   I: Integer;
   F: TextFile;
 begin
-  S := HexEditor.SelText;
-  if S = '' then
+  Data := HexEditor.SelText;
+  if Data = '' then
   begin
-    HexEditor.SelectAll;
-    S := HexEditor.SelText;
+    HexEditor.SelectAll();
+    Data := HexEditor.SelText;
   end;
 
-  if S = '' then
+  if Data = '' then
   begin
     MessageBoxA(Handle, 'Нет данных для сохранения!', 'Ошибка!', MB_ICONERROR or MB_OK);
-    Exit;
+    Exit();
   end;
 
   SaveDialog.Filter := 'Binary (*.bin)|*.bin';
@@ -2375,8 +2378,7 @@ begin
   else
     SaveDialog.FileName := 'Temp.bin';
 
-  if not SaveDialog.Execute then
-    Exit;
+  if not SaveDialog.Execute() then Exit();
 
   AssignFile(F, SaveDialog.FileName);
 {$I-}
@@ -2388,7 +2390,7 @@ begin
   end
   else
   begin
-    Write(F, S);
+    Write(F, Data);
     CloseFile(F);
   end;
 end;
@@ -2417,7 +2419,7 @@ end;
 
 procedure TFormEditor.N105Click(Sender: TObject);
 begin
-  FormGotoLine.ShowModal;
+  FormGotoLine.ShowModal();
 end;
 
 procedure TFormEditor.N106Click(Sender: TObject);
@@ -2427,7 +2429,7 @@ end;
 
 procedure TFormEditor.N10Click(Sender: TObject);
 begin
-  FormOptions.ShowModal;
+  FormOptions.ShowModal();
 end;
 
 procedure TFormEditor.N12Click(Sender: TObject);
@@ -2437,7 +2439,7 @@ end;
 
 procedure TFormEditor.N13Click(Sender: TObject);
 begin
-  FormAbout.ShowModal;
+  FormAbout.ShowModal();
 end;
 
 procedure TFormEditor.N17Click(Sender: TObject);
@@ -2479,14 +2481,15 @@ end;
 
 procedure TFormEditor.N23Click(Sender: TObject);
 begin
-  if not(PageControl1.ActivePage is TCustomTabSheet) then
-    Exit;
+  if not(PageControl1.ActivePage is TCustomTabSheet) then Exit();
+
   with FormFindInFile do
   begin
     EditFindText.Text := (PageControl1.ActivePage as TCustomTabSheet).SelectedText;
-    ShowModal;
-    if (ModalResult <> mrOk) or (EditFindText.Text = '') then
-      Exit;
+    ShowModal();
+
+    if (ModalResult <> mrOk) or (EditFindText.Text = '') then Exit();
+
     FindStrInFile(EditFindText.Text);
     EditFindText.Text := '';
   end;
@@ -2503,7 +2506,8 @@ begin
   if (PageControl1.ActivePage is TCustomTabSheet) then
     with FormSearchReplaceText do
     begin
-      ShowModal;
+      ShowModal();
+
       if (EditSearchText.Text <> '') and (EditReplaceText.Text <> '') and (ModalResult = mrOk) then
       begin
         (PageControl1.ActivePage as TCustomTabSheet).SearchReplaceText(EditSearchText.Text, EditReplaceText.Text);
@@ -2564,18 +2568,17 @@ var
 begin
   with FormNewProject do
   begin
-    ShowModal;
+    ShowModal();
 
-    if F = '' then
-      Exit;
+    if FileName = '' then Exit();
 
-    Res := LoadProject(F);
-    Application.ProcessMessages;
+    Res := LoadProject(FileName);
+    Application.ProcessMessages();
 
     if Res then
-      SaveProjectAs;
+      SaveProjectAs();
 
-    F := '';
+    FileName := '';
   end;
 end;
 
@@ -2587,18 +2590,18 @@ end;
 procedure TFormEditor.N33Click(Sender: TObject);
 begin
   if (PageControl1.ActivePage is TCustomTabSheet) then
-    (PageControl1.ActivePage as TCustomTabSheet).SaveToFile;
+    (PageControl1.ActivePage as TCustomTabSheet).SaveToFile();
 end;
 
 procedure TFormEditor.N34Click(Sender: TObject);
 begin
-  if LoadProjectB then
-    SaveProjectAs;
+  if IsLoadProject then
+    SaveProjectAs();
 end;
 
 procedure TFormEditor.N36Click(Sender: TObject);
 begin
-  Close;
+  Close();
 end;
 
 procedure TFormEditor.N37Click(Sender: TObject);
@@ -2610,7 +2613,7 @@ begin
     CustomTabSheet := (PageControl1.ActivePage as TCustomTabSheet);
     if CustomTabSheet.Modifi then
       if MessageBoxA(Handle, PAnsiChar(AnsiString('Сохранить файл ' + CustomTabSheet.Caption + '?')), 'Внимание!', MB_ICONQUESTION or MB_YESNO) = mrYes then
-        CustomTabSheet.SaveToFile;
+        CustomTabSheet.SaveToFile();
 
     I := PageControl1.ActivePageIndex;
     CustomTabSheet.Free;
@@ -2626,29 +2629,29 @@ begin
       SynCompletionJump.Editor := CustomTabSheet.FSynMemo;
 
       TSynCustomAsmHighlighter(CustomTabSheet.FSynMemo.Highlighter).SelectWord := CustomTabSheet.SelectWord;
-      CustomTabSheet.FSynMemo.Repaint;
+      CustomTabSheet.FSynMemo.Repaint();
 
       PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
     end
     else
     begin
-      ExplorerVar.Clear;
+      ExplorerVar.Clear();
     end;
 
     AddLastFiles(CustomTabSheet.FilePath);
-    LoadLastFiles;
+    LoadLastFiles();
   end;
 end;
 
 procedure TFormEditor.N38Click(Sender: TObject);
 begin
-  Vis(False);
-  CloseProject;
+  SetViseble(False);
+  CloseProject();
 end;
 
 procedure TFormEditor.N3Click(Sender: TObject);
 var
-  F, Ext: AnsiString;
+  FileName, Ext: AnsiString;
   I: Integer;
 begin
   OpenFileDialog.FileName := '';
@@ -2657,20 +2660,20 @@ begin
   if OpenFileDialog.Execute then
     for I := 0 to OpenFileDialog.Files.Count - 1 do
     begin
-      F := OpenFileDialog.Files.Strings[I];
-      if not FileExists(F) then
+      FileName := OpenFileDialog.Files.Strings[I];
+      if not FileExists(FileName) then
       begin
-        MessageBoxA(Handle, PAnsiChar(AnsiString('Файл ' + F + ' не найден!')), 'Ошибка!', MB_ICONERROR or MB_OK);
+        MessageBoxA(Handle, PAnsiChar(AnsiString('Файл ' + FileName + ' не найден!')), 'Ошибка!', MB_ICONERROR or MB_OK);
         Continue;
       end;
 
-      Ext := LowerCase(ExtractFileExt(F));
+      Ext := LowerCase(ExtractFileExt(FileName));
 
       if Ext = '.prt' then
-        LoadProject(F);
+        LoadProject(FileName);
 
       if (Ext = '.asm') or (Ext = '.inc') then
-        LoadAsmOrIncFile(F);
+        LoadSourceOrIncludeFile(FileName);
     end;
 end;
 
@@ -2678,14 +2681,13 @@ procedure TFormEditor.N41Click(Sender: TObject);
 var
   SearchRec: TSearchRec;
   Ext, FileAddName: AnsiString;
-  BolSource, BolInclude: Boolean;
+  IsSource, IsInclude: Boolean;
   I: Integer;
 begin
   OpenFileDialog.FileName := '';
   OpenFileDialog.Filter := 'Source (*.asm)|*.asm|Include (*.inc)|*.inc';
 
-  if not OpenFileDialog.Execute then
-    Exit;
+  if not OpenFileDialog.Execute then Exit();
 
   ExplorerProject.BeginUpdate;
   for I := 0 to OpenFileDialog.Files.Count - 1 do
@@ -2697,8 +2699,8 @@ begin
       Continue;
     end;
 
-    BolSource := False;
-    BolInclude := False;
+    IsSource := False;
+    IsInclude := False;
     Ext := ExtractFileExt(FileAddName);
 
     if LowerCase(Ext) = '.asm' then
@@ -2709,8 +2711,8 @@ begin
       end
       else
       begin
-        BolSource := True;
-        NodeTemp := ExplorerProject.AddChild(NodeDirSource);
+        IsSource := True;
+        NodeTemp := ExplorerProject.AddChild(NodeDirectorySource);
       end;
 
     if LowerCase(Ext) = '.inc' then
@@ -2721,23 +2723,23 @@ begin
       end
       else
       begin
-        BolInclude := True;
-        NodeTemp := ExplorerProject.AddChild(NodeDirInclude);
+        IsInclude := True;
+        NodeTemp := ExplorerProject.AddChild(NodeDirectoryInclude);
       end;
 
     if NodeTemp = nil then
       Continue;
 
-    ExpFieldPrt := ExplorerProject.GetNodeData(NodeTemp);
+    ExplorerProjectField := ExplorerProject.GetNodeData(NodeTemp);
 
-    with ExpFieldPrt^ do
+    with ExplorerProjectField^ do
     begin
       NameNode := ExtractFileName(FileAddName);
       FilePath := FileAddName;
-      Project := False;
-      DirBol := False;
-      Source := BolSource;
-      Include := BolInclude;
+      IsProject := False;
+      IsDirectory := False;
+      IsSource := IsSource;
+      IsInclude := IsInclude;
     end;
   end;
 
@@ -2746,14 +2748,14 @@ begin
   else
     CreatePage(FileAddName);
 
-  ExplorerProject.FullExpand;
-  ExplorerProject.EndUpdate;
+  ExplorerProject.FullExpand();
+  ExplorerProject.EndUpdate();
   ModifiProjectFile(ProjectFile);
 end;
 
 procedure TFormEditor.N44Click(Sender: TObject);
 begin
-  SaveAll;
+  SaveAll();
 end;
 
 procedure TFormEditor.N46Click(Sender: TObject);
@@ -2771,7 +2773,7 @@ procedure TFormEditor.N50Click(Sender: TObject);
   procedure FindAndDeletePage(const FindName: AnsiString);
   var
     I: Integer;
-    S: AnsiString;
+    MessageString: AnsiString;
   begin
     for I := 1 to PageControl1.PageCount - 1 do
     begin
@@ -2779,12 +2781,12 @@ procedure TFormEditor.N50Click(Sender: TObject);
       begin
         if (PageControl1.Pages[I] as TCustomTabSheet).Modifi then
         begin
-          S := 'Сохранить файл ' + (PageControl1.Pages[I] as TCustomTabSheet).Caption + '?';
-          if MessageBoxA(Handle, PAnsiChar(S), 'Внимание!', MB_ICONQUESTION or MB_YESNO) = mrYes then
-            (PageControl1.Pages[I] as TCustomTabSheet).SaveToFile;
+          MessageString := 'Сохранить файл ' + (PageControl1.Pages[I] as TCustomTabSheet).Caption + '?';
+          if MessageBoxA(Handle, PAnsiChar(MessageString), 'Внимание!', MB_ICONQUESTION or MB_YESNO) = mrYes then
+            (PageControl1.Pages[I] as TCustomTabSheet).SaveToFile();
         end;
 
-        (PageControl1.Pages[I] as TCustomTabSheet).Free;
+        (PageControl1.Pages[I] as TCustomTabSheet).Free();
         PageControl1.ActivePageIndex := I - 1;
         Break;
       end;
@@ -2792,11 +2794,10 @@ procedure TFormEditor.N50Click(Sender: TObject);
   end;
 
 var
-  Data: PExplorerFieldPrt;
+  Data: PExplorerProjectField;
   I: Integer;
 begin
-  if ExplorerProject.FocusedNode = nil then
-    Exit;
+  if ExplorerProject.FocusedNode = nil then Exit();
 
   Data := ExplorerProject.GetNodeData(ExplorerProject.FocusedNode);
   if MessageBoxA(Handle, PAnsiChar(AnsiString('Удалить файл ' + Data^.FilePath + ' из проекта?')), 'Внимание!', MB_ICONQUESTION or MB_YESNO) = mrYes then
@@ -2821,18 +2822,18 @@ end;
 
 procedure TFormEditor.N55Click(Sender: TObject);
 var
-  S: AnsiString;
+  FileName: AnsiString;
 begin
   if (PageControl1.ActivePage is TCustomTabSheet) then
   begin
-    S := (PageControl1.ActivePage as TCustomTabSheet).FilePath;
-    ShellExecuteA(Handle, 'OPEN', 'EXPLORER', PAnsiChar('/select, ' + S), '', SW_NORMAL);
+    FileName := (PageControl1.ActivePage as TCustomTabSheet).FilePath;
+    ShellExecuteA(Handle, 'OPEN', 'EXPLORER', PAnsiChar('/select, ' + FileName), '', SW_NORMAL);
   end;
 end;
 
 procedure TFormEditor.N58Click(Sender: TObject);
 begin
-  SaveAll;
+  SaveAll();
 end;
 
 procedure TFormEditor.N60Click(Sender: TObject);
@@ -2911,7 +2912,7 @@ begin
   with FormParamRun do
   begin
     EditParam.Text := ParamRunProg;
-    ShowModal;
+    ShowModal();
 
     if ModalResult = mrOk then
       ParamRunProg := EditParam.Text;
@@ -2924,26 +2925,25 @@ begin
 end;
 
 procedure TFormEditor.N85Click(Sender: TObject);
-  function DelComent(const S: string): string;
+  function DeleteComment(InputString: string): string;
   var
-    I, Len: Integer;
-    BCom: Boolean;
-    Str: string;
+    I: Integer;
+    IsComment: Boolean;
   begin
-    BCom := False;
-    Str := Trim(S);
-    Len := Length(Str);
-    for I := 1 to Len do
+    IsComment := False;
+    InputString := Trim(InputString);
+
+    for I := 1 to Length(InputString) do
     begin
-      case Str[I] of
+      case InputString[I] of
         ';':
-          BCom := True;
+          IsComment := True;
         #10, #13:
-          BCom := False;
+          IsComment := False;
       end;
 
-      if not BCom then
-        Result := Result + Str[I];
+      if not IsComment then
+        Result := Result + InputString[I];
     end;
   end;
 
@@ -2952,16 +2952,14 @@ var
   I, J, K, B: Integer;
   C: AnsiChar;
 begin
-  if not(PageControl1.ActivePage is TCustomTabSheet) then
-    Exit;
+  if not(PageControl1.ActivePage is TCustomTabSheet) then Exit();
 
   with (PageControl1.ActivePage as TCustomTabSheet) do
   begin
     S := FSynMemo.Lines.Strings[FSynMemo.CaretY - 1];
-    S := DelComent(S);
+    S := DeleteComment(S);
 
-    if (S = '') or (Pos('include', LowerCase(S)) <= 0) then
-      Exit;
+    if (S = '') or (Pos('include', LowerCase(S)) <= 0) then Exit();
 
     S := Copy(S, 8, Length(S));
     S2 := '';
@@ -3001,10 +2999,9 @@ begin
   if (PageControl1.ActivePage is TCustomTabSheet) then
     with (PageControl1.ActivePage as TCustomTabSheet) do
     begin
-      if VarName = '' then
-        Exit;
+      if VarName = '' then Exit();
 
-      AsmScanner := TAsmScanner.Create;
+      AsmScanner := TAsmScanner.Create();
       AsmScanner.Run(ProjectPath, FSynMemo.Text, FormOptions.EditINC.Text);
 
       AsmIntruction := AsmScanner.FindInstructionByName(VarName);
@@ -3025,7 +3022,7 @@ begin
         end;
       end;
 
-      AsmScanner.Free;
+      AsmScanner.Free();
       ActiveControl := TCustomTabSheet(PageControl1.ActivePage).FSynMemo;
     end;
 end;
@@ -3047,9 +3044,9 @@ begin
     SynHint.Editor := CustomTabSheet.FSynMemo;
     SynCompletionJump.Editor := CustomTabSheet.FSynMemo;
     TSynCustomAsmHighlighter(CustomTabSheet.FSynMemo.Highlighter).SelectWord := CustomTabSheet.SelectWord;
-    CustomTabSheet.FSynMemo.Repaint;
+    CustomTabSheet.FSynMemo.Repaint();
 
-    if not LoadProjectB then
+    if not IsLoadProject then
     begin
       ProjectFile := CustomTabSheet.FilePath;
       ProjectPath := ExtractFilePath(CustomTabSheet.FilePath);
@@ -3061,7 +3058,7 @@ begin
   end
   else
   begin
-    ExplorerVar.Clear;
+    ExplorerVar.Clear();
   end;
 end;
 
@@ -3069,14 +3066,13 @@ procedure TFormEditor.PageControl1ContextPopup(Sender: TObject;
   MousePos: TPoint; var Handled: Boolean);
 var
   I: Integer;
-  MPos: TPoint;
+  MousePosition: TPoint;
 begin
   I := PageControl1.IndexOfTabAt(MousePos.x, MousePos.y);
-  if I < 0 then
-    Exit;
+  if I < 0 then Exit();
 
   PageControl1.ActivePageIndex := I;
-  GetCursorPos(MPos);
+  GetCursorPos(MousePosition);
   if I > 0 then
   begin
     CustomTabSheet := (PageControl1.ActivePage as TCustomTabSheet);
@@ -3087,7 +3083,7 @@ begin
     TSynCustomAsmHighlighter(CustomTabSheet.FSynMemo.Highlighter).SelectWord := CustomTabSheet.SelectWord;
     CustomTabSheet.FSynMemo.Repaint;
 
-    if not LoadProjectB then
+    if not IsLoadProject then
     begin
       ProjectFile := CustomTabSheet.FilePath;
       ProjectPath := ExtractFilePath(CustomTabSheet.FilePath);
@@ -3097,20 +3093,20 @@ begin
 
     PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
 
-    PMenuTab.Popup(MPos.x, MPos.y);
+    PMenuTab.Popup(MousePosition.x, MousePosition.y);
   end
   else
   begin
-    ExplorerVar.Clear;
+    ExplorerVar.Clear();
   end;
 end;
 
 procedure TFormEditor.PageControl1MouseMove(Sender: TObject; Shift: TShiftState; x, y: Integer);
 begin
-  ActPage := PageControl1.IndexOfTabAt(x, y);
+  ActivePageIndex := PageControl1.IndexOfTabAt(x, y);
 end;
 
-procedure TFormEditor.SaveAll;
+procedure TFormEditor.SaveAll();
 var
   I: Integer;
 begin
@@ -3118,21 +3114,21 @@ begin
     if PageControl1.Pages[I] is TCustomTabSheet then
       with (PageControl1.Pages[I] as TCustomTabSheet) do
       begin
-        SaveToFile;
+        SaveToFile();
       end;
 end;
 
 procedure TFormEditor.SaveDialogCanClose(Sender: TObject; var CanClose: Boolean);
 var
   SearchRec: TSearchRec;
-  S: AnsiString;
+  MessageString: AnsiString;
 begin
   CanClose := False;
 
   if FindFirst(SaveDialog.FileName, faAnyFile, SearchRec) = 0 then
   begin
-    S := 'Файл ' + ExtractFileName(SaveDialog.FileName) + ' уже существует. Заменить?';
-    if MessageBoxA(SaveDialog.Handle, PAnsiChar(S), 'Внимание!', MB_ICONQUESTION or MB_YESNO) = mrYes then
+    MessageString := 'Файл ' + ExtractFileName(SaveDialog.FileName) + ' уже существует. Заменить?';
+    if MessageBoxA(SaveDialog.Handle, PAnsiChar(MessageString), 'Внимание!', MB_ICONQUESTION or MB_YESNO) = mrYes then
       CanClose := True;
   end
   else
@@ -3143,53 +3139,53 @@ end;
 
 procedure TFormEditor.Source1Click(Sender: TObject);
 var
-  Str: AnsiString;
+  FileName: AnsiString;
   F: TextFile;
 begin
   SaveDialog.Filter := 'Source (*.asm)|*.asm';
   SaveDialog.FileName := 'Source.asm';
   if SaveDialog.Execute then
   begin
-    Str := SaveDialog.FileName;
+    FileName := SaveDialog.FileName;
 
-    AssignFile(F, Str);
+    AssignFile(F, FileName);
 {$I-}
     Rewrite(F);
 {$I+}
     if IOResult <> 0 then
     begin
       MessageBoxA(Handle, 'Произошла ошибка при создании файла.', 'Ошибка!', MB_ICONERROR or MB_OK);
-      Exit;
+      Exit();
     end
     else
       CloseFile(F);
 
-    if FindNode(ExtractFileName(Str), True) then
+    if FindNode(ExtractFileName(FileName), True) then
     begin
-      PageReset(Str);
-      Exit;
+      PageReset(FileName);
+      Exit();
     end;
 
-    ExplorerProject.BeginUpdate;
-    NodeTemp := ExplorerProject.AddChild(NodeDirSource);
-    ExpFieldPrt := ExplorerProject.GetNodeData(NodeTemp);
-    with ExpFieldPrt^ do
+    ExplorerProject.BeginUpdate();
+    NodeTemp := ExplorerProject.AddChild(NodeDirectorySource);
+    ExplorerProjectField := ExplorerProject.GetNodeData(NodeTemp);
+    with ExplorerProjectField^ do
     begin
-      NameNode := ExtractFileName(Str);
-      FilePath := Str;
-      Project := False;
-      DirBol := False;
-      Source := True;
-      Include := False;
+      NameNode := ExtractFileName(FileName);
+      FilePath := FileName;
+      IsProject := False;
+      IsDirectory := False;
+      IsSource := True;
+      IsInclude := False;
     end;
 
-    if FindPage(Str) then
-      PageReset(Str)
+    if FindPage(FileName) then
+      PageReset(FileName)
     else
-      CreatePage(Str);
+      CreatePage(FileName);
 
-    ExplorerProject.FullExpand;
-    ExplorerProject.EndUpdate;
+    ExplorerProject.FullExpand();
+    ExplorerProject.EndUpdate();
     ModifiProjectFile(ProjectFile);
   end;
 end;
@@ -3197,31 +3193,30 @@ end;
 procedure TFormEditor.SynCompletionCodeCompletion(Sender: TObject;
   var Value: string; Shift: TShiftState; Index: Integer; EndToken: Char);
 var
-  x, I: Integer;
+  I: Integer;
   Line: string;
   C: Char;
-  Find: Boolean;
+  IsFound: Boolean;
   DotCount: Integer;
 begin
-  Find := False;
+  IsFound := False;
   DotCount := 0;
 
   with (PageControl1.ActivePage as TCustomTabSheet) do
   begin
-    x := FSynMemo.CaretXY.Char - 1;
     Line := FSynMemo.Lines[FSynMemo.CaretXY.Line - 1];
 
     for I := Length(Line) downto 1 do
       if (Line[I] = '.') and (not(Line[I] in [#1 .. #32])) then
       begin
-        Find := True;
+        IsFound := True;
         Inc(DotCount);
 
         if DotCount = 2 then
           Break;
       end;
 
-    if (Find) and (Value <> '') and (Value[1] = '.') then
+    if (IsFound) and (Value <> '') and (Value[1] = '.') then
       Value := Copy(Value, 2, Length(Value));
   end;
 
@@ -3232,34 +3227,31 @@ procedure TFormEditor.SynCompletionExecute(Kind: SynCompletionType;
   Sender: TObject; var CurrentInput: string; var x, y: Integer;
   var CanExecute: Boolean);
 
-  function GetName(const S: string; var S2, S3: string): Boolean;
+  function GetName(const InputString: string; var StringBeforeDot, StringAfterDot: string): Boolean;
   var
     I: Integer;
-    Dot: Integer;
+    DotCount: Integer;
   begin
-    Dot := 0;
+    DotCount := 0;
     Result := False;
-    for I := Length(S) downto 1 do
+    for I := Length(InputString) downto 1 do
     begin
-      if S[I] = '.' then
-        Inc(Dot)
+      if InputString[I] = '.' then
+        Inc(DotCount)
       else
-        if S[I] in [#1 .. #32] { , '(', ')', '[', ']', ',', '=', '\', '/', ':'] } then
+        if InputString[I] in [#1 .. #32] { , '(', ')', '[', ']', ',', '=', '\', '/', ':'] } then
           Break
-      else if Dot = 0 then
-        S2 := S[I] + S2
+      else if DotCount = 0 then
+        StringBeforeDot := InputString[I] + StringBeforeDot
       else
-        S3 := S[I] + S3;
+        StringAfterDot := InputString[I] + StringAfterDot;
 
-      if Dot > 1 then
+      if DotCount > 1 then
       begin
         Result := True;
         Break;
       end
     end;
-
-    // S2 := Trim(S2);
-    // S3 := Trim(S3);
   end;
 
   function SetStyle(const Name: string): string;
@@ -3275,24 +3267,22 @@ procedure TFormEditor.SynCompletionExecute(Kind: SynCompletionType;
   function GetPreviousToken(AEditor: TCustomSynEdit): string;
   var
     Line: string;
-    x: Integer;
+    CharPosition: Integer;
   begin
     Result := '';
     if not Assigned(AEditor) then
       Exit;
 
     Line := AEditor.Lines[AEditor.CaretXY.Line - 1];
-    x := AEditor.CaretXY.Char - 1;
-    if (x = 0) or (x > Length(Line)) or (Length(Line) = 0) then
-      Exit;
+    CharPosition := AEditor.CaretXY.Char - 1;
+    if (CharPosition = 0) or (CharPosition > Length(Line)) or (Length(Line) = 0) then Exit();
 
-    if IsWordBreakChar(Line[x]) then
-      Exit; // Dec(X);
+    if IsWordBreakChar(Line[CharPosition]) then Exit(); // Dec(X);
 
-    while (x > 0) and not(IsWordBreakChar(Line[x])) do
+    while (CharPosition > 0) and not(IsWordBreakChar(Line[CharPosition])) do
     begin
-      Result := Line[x] + Result;
-      Dec(x);
+      Result := Line[CharPosition] + Result;
+      Dec(CharPosition);
     end;
   end;
 
@@ -3300,8 +3290,8 @@ label
   Next;
 
 var
-  S, VarName, VarName2, Line: string;
-  IsFound, Dot: Boolean;
+  S, VarNameBeforeDot, VarNameAfterDot, Line: string;
+  IsFound, IsDot: Boolean;
   I: Integer;
   C: Char;
 
@@ -3316,43 +3306,43 @@ var
   AsmLabel: TAsmLabel;
   AsmConst: TAsmConst;
   AsmVar: TAsmVar;
-  Field: TAsmStructField;
+  AsmStructField: TAsmStructField;
 begin
   with (PageControl1.ActivePage as TCustomTabSheet) do
   begin
     AsmScanner := TAsmScanner.Create;
 
-    Dot := GetName(GetPreviousToken(FSynMemo), VarName, VarName2);
+    IsDot := GetName(GetPreviousToken(FSynMemo), VarNameBeforeDot, VarNameAfterDot);
 
     with SynCompletion do
     begin
-      ItemList.BeginUpdate;
-      InsertList.BeginUpdate;
-      ClearList;
+      ItemList.BeginUpdate();
+      InsertList.BeginUpdate();
+      ClearList();
 
-      if VarName2 <> '' then
+      if VarNameAfterDot <> '' then
       begin
         AsmScanner.Run(ProjectPath, FSynMemo.Lines.Text, FormOptions.EditINC.Text);
-        AsmVar := AsmScanner.FindVarByName(VarName2);
+        AsmVar := AsmScanner.FindVarByName(VarNameAfterDot);
 
         if AsmVar <> nil then
         begin
           AsmStruct := AsmScanner.FindStructByName(AsmVar.FTypeShort);
           if AsmStruct <> nil then
           begin
-            for Field in AsmStruct.FListField.ToArray do
+            for AsmStructField in AsmStruct.FListField.ToArray do
             begin
-              InsertList.Add(Field.FName);
-              ItemList.Add(SetStyle('var') + Field.FName + ':\color{clBlue}\style{-B} ' + Field.FType);
+              InsertList.Add(AsmStructField.FName);
+              ItemList.Add(SetStyle('var') + AsmStructField.FName + ':\color{clBlue}\style{-B} ' + AsmStructField.FType);
             end;
 
             AsmStruct := AsmScanner.FindStructByName(AsmStruct.FType);
             if AsmStruct <> nil then
             begin
-              for Field in AsmStruct.FListField.ToArray do
+              for AsmStructField in AsmStruct.FListField.ToArray do
               begin
-                InsertList.Add(Field.FName);
-                ItemList.Add(SetStyle('var') + Field.FName + ':\color{clBlue}\style{-B} ' + Field.FType);
+                InsertList.Add(AsmStructField.FName);
+                ItemList.Add(SetStyle('var') + AsmStructField.FName + ':\color{clBlue}\style{-B} ' + AsmStructField.FType);
               end;
             end;
           end;
@@ -3364,10 +3354,10 @@ begin
 
           for AsmStruct in AsmScanner.ListStruct.ToArray do
           begin
-            Field := AsmStruct.FindFieldByName(VarName2);
-            if Field <> nil then
+            AsmStructField := AsmStruct.FindFieldByName(VarNameAfterDot);
+            if AsmStructField <> nil then
             begin
-              S := Field.FType;
+              S := AsmStructField.FType;
               IsFound := True;
               Break;
             end;
@@ -3377,34 +3367,35 @@ begin
 
           if AsmStruct <> nil then
           begin
-            for Field in AsmStruct.FListField.ToArray do
+            for AsmStructField in AsmStruct.FListField.ToArray do
             begin
-              InsertList.Add(Field.FName);
-              ItemList.Add(SetStyle('var') + Field.FName + ':\color{clBlue}\style{-B} ' + Field.FType);
+              InsertList.Add(AsmStructField.FName);
+              ItemList.Add(SetStyle('var') + AsmStructField.FName + ':\color{clBlue}\style{-B} ' + AsmStructField.FType);
             end;
 
             AsmStruct := AsmScanner.FindStructByName(AsmStruct.FType);
             if AsmStruct <> nil then
             begin
-              for Field in AsmStruct.FListField.ToArray do
+              for AsmStructField in AsmStruct.FListField.ToArray do
               begin
-                InsertList.Add(Field.FName);
-                ItemList.Add(SetStyle('var') + Field.FName + ':\color{clBlue}\style{-B} ' + Field.FType);
+                InsertList.Add(AsmStructField.FName);
+                ItemList.Add(SetStyle('var') + AsmStructField.FName + ':\color{clBlue}\style{-B} ' + AsmStructField.FType);
               end;
             end;
           end;
         end;
 
-        ItemList.EndUpdate;
-        InsertList.EndUpdate;
-        AsmScanner.Free;
+        ItemList.EndUpdate();
+        InsertList.EndUpdate();
+        AsmScanner.Free();
 
-        if VarName <> '' then
-          CurrentInput := VarName;
-        Exit;
+        if VarNameBeforeDot <> '' then
+          CurrentInput := VarNameBeforeDot;
+
+        Exit();
       end;
 
-      if not Dot then
+      if not IsDot then
       begin
         Line := FSynMemo.Lines[FSynMemo.CaretXY.Line - 1];
         Line := Copy(Line, 1, FSynMemo.CaretXY.Char - 1);
@@ -3415,11 +3406,11 @@ begin
           if (C in [#1 .. #32]) or (not(C in ['0' .. '9', 'A' .. 'Z', 'a' .. 'z', '_', '.'])) then
             Break
           else
-            Dot := C = '.';
+            IsDot := C = '.';
         end;
       end;
 
-      if Dot then
+      if IsDot then
         CurrentInput := '.' + CurrentInput;
 
       AsmScanner.Run(ProjectPath, FSynMemo.Lines.Text, FormOptions.EditINC.Text);
@@ -3485,10 +3476,10 @@ begin
         ItemList.Add(SetStyle('var') + AsmVar.FName + ':\color{clBlue}\style{-B} ' + AsmVar.FTypeLong);
       end;
 
-      ItemList.EndUpdate;
-      InsertList.EndUpdate;
+      ItemList.EndUpdate();
+      InsertList.EndUpdate();
     end;
-    AsmScanner.Free;
+    AsmScanner.Free();
   end;
 end;
 
@@ -3511,12 +3502,12 @@ begin
       if Word = '' then
       begin
         CanExecute := False;
-        Exit;
+        Exit();
       end;
 
-      SynHint.ClearList;
+      SynHint.ClearList();
 
-      AsmScanner := TAsmScanner.Create;
+      AsmScanner := TAsmScanner.Create();
       AsmScanner.Run(ProjectPath, FSynMemo.Text, FormOptions.EditINC.Text);
 
       AsmIntruction := AsmScanner.FindInstructionByName(Word);
@@ -3562,7 +3553,7 @@ begin
       else
         CanExecute := False;
 
-      AsmScanner.Free;
+      AsmScanner.Free();
     end;
 end;
 
@@ -3573,7 +3564,7 @@ end;
 
 procedure TFormEditor.ToolButton6Click(Sender: TObject);
 begin
-  if LoadProjectB then
+  if IsLoadProject then
     LoadProject(ProjectFile);
 end;
 
@@ -3584,22 +3575,22 @@ end;
 
 procedure TFormEditor.ToolButton8Click(Sender: TObject);
 begin
-  CloseProgAndDBG;
+  CloseProgAndDbg();
 end;
 
 procedure TFormEditor.ToolButton9Click(Sender: TObject);
 var
-  S: AnsiString;
+  FileName: AnsiString;
 begin
-  if not FileExists(DBG) then
+  if not FileExists(FormOptions.DbgPath) then
   begin
     MessageBoxA(Handle, 'Отладчик не найден. Проверти путь в настройках программы!', 'Ошибка!', MB_ICONERROR or MB_OK);
-    Exit;
+    Exit();
   end;
 
-  S := ProjectPath + ProjectName;
-  if (FileExists(S + '.com')) or (FileExists(S + '.exe')) or (FileExists(S + '.dll')) then
-    RunDBG
+  FileName := ProjectPath + ProjectName;
+  if (FileExists(FileName + '.com')) or (FileExists(FileName + '.exe')) or (FileExists(FileName + '.dll')) then
+    RunDbg()
   else
     MessageBoxA(Handle, 'Файл *.com, *.exe, *.dll не найден!', 'Внимание!', MB_ICONINFORMATION or MB_OK);
 end;
@@ -3607,71 +3598,70 @@ end;
 procedure TFormEditor.MenuLastFilesClick(Sender: TObject);
   function GetName(const S: string): string;
   var
-    I, Len: Integer;
+    I: Integer;
   begin
-    Len := Length(S);
-    for I := 1 to Len do
+    for I := 1 to Length(S) do
       if S[I] <> '&' then
         Result := Result + S[I];
   end;
 
 var
-  S, Ext: AnsiString;
+  FileName, Ext: AnsiString;
 begin
-  S := GetName(TMenuItem(Sender).Caption);
-  S := Copy(S, Pos('-', S) + 2, Length(S));
+  FileName := GetName(TMenuItem(Sender).Caption);
+  FileName := Copy(FileName, Pos('-', FileName) + 2, Length(FileName));
 
-  if not FileExists(S) then
+  if not FileExists(FileName) then
   begin
-    MessageBoxA(Handle, PAnsiChar(AnsiString('Файл ' + S + ' не найден!')), 'Ошибка!', MB_ICONSTOP or MB_OK);
-    Exit;
+    MessageBoxA(Handle, PAnsiChar(AnsiString('Файл ' + FileName + ' не найден!')), 'Ошибка!', MB_ICONSTOP or MB_OK);
+    Exit();
   end;
 
-  Ext := LowerCase(ExtractFileExt(S));
+  Ext := LowerCase(ExtractFileExt(FileName));
   if Ext = '.prt' then
-    LoadProject(S);
+    LoadProject(FileName);
 
   if (Ext = '.asm') or (Ext = '.inc') then
-    LoadAsmOrIncFile(S);
+    LoadSourceOrIncludeFile(FileName);
 end;
 
 procedure TFormEditor.LoadLastFiles;
 var
   I: Integer;
-  M: TMenuItem;
+  NewMenuItem: TMenuItem;
   Ext: string;
 begin
   with ListBoxFile.Items do
   begin
-    BeginUpdate;
+    BeginUpdate();
     for I := 0 to N32.Count - 1 do
       N32.Items[0].Destroy;
 
     for I := 0 to Count - 1 do
     begin
-      M := TMenuItem.Create(MainMenu);
-      M.OnClick := MenuLastFilesClick;
-      M.Caption := IntToStr(I + 1) + ' - ' + Strings[I];
+      NewMenuItem := TMenuItem.Create(MainMenu);
+      NewMenuItem.OnClick := MenuLastFilesClick;
+      NewMenuItem.Caption := IntToStr(I + 1) + ' - ' + Strings[I];
 
       Ext := LowerCase(ExtractFileExt(Strings[I]));
       if Ext = '.prt' then
-        M.ImageIndex := 36
+        NewMenuItem.ImageIndex := 36
       else if Ext = '.asm' then
-        M.ImageIndex := 37
+        NewMenuItem.ImageIndex := 37
       else if Ext = '.inc' then
-        M.ImageIndex := 38;
+        NewMenuItem.ImageIndex := 38;
 
-      N32.Add(M);
+      N32.Add(NewMenuItem);
     end;
 
     if N32.Count = 0 then
     begin
-      M := TMenuItem.Create(MainMenu);
-      M.Caption := 'Пусто';
-      N32.Add(M);
+      NewMenuItem := TMenuItem.Create(MainMenu);
+      NewMenuItem.Caption := 'Пусто';
+      N32.Add(NewMenuItem);
     end;
 
-    EndUpdate;
+    EndUpdate();
   end;
 end;
 
@@ -3679,15 +3669,13 @@ procedure TFormEditor.AddLastFiles(const FileName: string);
 var
   I: Integer;
 begin
-  if FileName = '' then
-    Exit;
+  if FileName = '' then Exit();
 
   if ListBoxFile.Items.Count = 20 then
     ListBoxFile.Items.Delete(19);
 
   for I := 0 to ListBoxFile.Items.Count - 1 do
-    if ListBoxFile.Items.Strings[I] = FileName then
-      Exit;
+    if ListBoxFile.Items.Strings[I] = FileName then Exit();
 
   ListBoxFile.Items.Insert(0, FileName);
 end;
@@ -3699,141 +3687,138 @@ var
 begin
   Result := False;
 
-  if FileName = '' then
-    Exit;
+  if FileName = '' then Exit();
 
   if not FileExists(FileName) then
   begin
     MessageBoxA(Handle, PAnsiChar(AnsiString('Файл ' + FileName + ' не найден!')), 'Ошибка!', MB_ICONERROR or MB_OK);
-    Exit;
+    Exit();
   end;
 
-  CloseProject;
+  CloseProject();
   ProjectFile := FileName;
 
-  Ini := TIniFile.Create(ProjectFile);
+  IniFile := TIniFile.Create(ProjectFile);
   with ExplorerProject do
   begin
-    BeginUpdate;
+    BeginUpdate();
 
     ProjectPath := ExtractFilePath(ProjectFile);
     ProjectName := ExtractFileName(ProjectFile);
     ProjectName := Copy(ProjectName, 1, Pos('.', ProjectName) - 1);
 
-    NodeDirPtr := AddChild(nil);
-    ExpFieldPrt := GetNodeData(NodeDirPtr);
-    with ExpFieldPrt^ do
+    NodeDirectoryProject := AddChild(nil);
+    ExplorerProjectField := GetNodeData(NodeDirectoryProject);
+    with ExplorerProjectField^ do
     begin
       NameNode := ProjectName;
       FilePath := ProjectFile;
-      Project := True;
-      DirBol := False;
-      Source := False;
-      Include := False;
+      IsProject := True;
+      IsDirectory := False;
+      IsSource := False;
+      IsInclude := False;
     end;
 
-    NodeDirSource := AddChild(NodeDirPtr);
-    ExpFieldPrt := GetNodeData(NodeDirSource);
-    with ExpFieldPrt^ do
+    NodeDirectorySource := AddChild(NodeDirectoryProject);
+    ExplorerProjectField := GetNodeData(NodeDirectorySource);
+    with ExplorerProjectField^ do
     begin
       NameNode := 'Source';
       FilePath := '';
-      Project := False;
-      DirBol := True;
-      Source := False;
-      Include := False;
+      IsProject := False;
+      IsDirectory := True;
+      IsSource := False;
+      IsInclude := False;
     end;
 
-    J := Ini.ReadInteger('options', 'countAsm', J);
+    J := IniFile.ReadInteger('options', 'countAsm', J);
     for I := 1 to J do
     begin
-      Str := Ini.ReadString('asm', 'asm' + IntToStr(I), Str);
+      Str := IniFile.ReadString('asm', 'asm' + IntToStr(I), Str);
 
       if (not FileExists(ProjectPath + ExtractFileName(Str))) or (FindNode(ExtractFileName(Str), True)) or (ExtractFileExt(Str) = '') then
         Continue;
 
-      NodeSource := AddChild(NodeDirSource);
-      ExpFieldPrt := GetNodeData(NodeSource);
-      with ExpFieldPrt^ do
+      NodeSource := AddChild(NodeDirectorySource);
+      ExplorerProjectField := GetNodeData(NodeSource);
+      with ExplorerProjectField^ do
       begin
         NameNode := Str;
         FilePath := ProjectPath + ExtractFileName(Str);
-        Project := False;
-        DirBol := False;
-        Source := True;
-        Include := False;
+        IsProject := False;
+        IsDirectory := False;
+        IsSource := True;
+        IsInclude := False;
       end;
     end;
 
-    NodeDirInclude := AddChild(NodeDirPtr);
-    ExpFieldPrt := GetNodeData(NodeDirInclude);
-    with ExpFieldPrt^ do
+    NodeDirectoryInclude := AddChild(NodeDirectoryProject);
+    ExplorerProjectField := GetNodeData(NodeDirectoryInclude);
+    with ExplorerProjectField^ do
     begin
       NameNode := 'Include';
       FilePath := '';
-      Project := False;
-      DirBol := True;
-      Source := False;
-      Include := False;
+      IsProject := False;
+      IsDirectory := True;
+      IsSource := False;
+      IsInclude := False;
     end;
 
-    J := Ini.ReadInteger('options', 'countInc', J);
+    J := IniFile.ReadInteger('options', 'countInc', J);
     for I := 1 to J do
     begin
-      Str := Ini.ReadString('inc', 'inc' + IntToStr(I), Str);
+      Str := IniFile.ReadString('inc', 'inc' + IntToStr(I), Str);
 
       if (not FileExists(ProjectPath + ExtractFileName(Str))) or (FindNode(ExtractFileName(Str), False)) or (ExtractFileExt(Str) = '') then
         Continue;
 
-      NodeInclude := AddChild(NodeDirInclude);
-      ExpFieldPrt := GetNodeData(NodeInclude);
-      with ExpFieldPrt^ do
+      NodeInclude := AddChild(NodeDirectoryInclude);
+      ExplorerProjectField := GetNodeData(NodeInclude);
+      with ExplorerProjectField^ do
       begin
         NameNode := Str;
         FilePath := ProjectPath + ExtractFileName(Str);
-        Project := False;
-        DirBol := False;
-        Source := False;
-        Include := True;
+        IsProject := False;
+        IsDirectory := False;
+        IsSource := False;
+        IsInclude := True;
       end;
     end;
-    EndUpdate;
+    EndUpdate();
 
-    Ini.Free;
+    IniFile.Free();
 
-    FullExpand;
+    FullExpand();
 
-    NodeTemp := GetNext(NodeDirSource);
-    ExpFieldPrt := GetNodeData(NodeTemp);
+    NodeTemp := GetNext(NodeDirectorySource);
+    ExplorerProjectField := GetNodeData(NodeTemp);
 
-    if ExpFieldPrt^.FilePath <> '' then
-      CreatePage(ExpFieldPrt^.FilePath);
-
+    if ExplorerProjectField^.FilePath <> '' then
+      CreatePage(ExplorerProjectField^.FilePath);
   end;
 
-  Vis(True);
-  LoadProjectB := True;
+  SetViseble(True);
+  IsLoadProject := True;
   ModifiProjectFile(ProjectFile);
   Result := True;
 end;
 
-procedure TFormEditor.LoadAsmOrIncFile(const FileName: AnsiString);
+procedure TFormEditor.LoadSourceOrIncludeFile(const FileName: AnsiString);
 var
   I: Integer;
   IsFound: Boolean;
 begin
-  if FileName = '' then
-    Exit;
+  if FileName = '' then Exit();
 
   if not FileExists(FileName) then
   begin
     MessageBoxA(Handle, PAnsiChar(AnsiString('Файл ' + FileName + ' не найден!')), 'Ошибка!', MB_ICONERROR or MB_OK);
-    Exit;
+    Exit();
   end;
 
-  Vis(True);
+  SetViseble(True);
 
-  if not LoadProjectB then
+  if not IsLoadProject then
   begin
     ProjectFile := FileName;
     ProjectPath := ExtractFilePath(FileName);
@@ -3860,7 +3845,7 @@ begin
     CreatePage(FileName);
 end;
 
-procedure TFormEditor.Vis(Status: Boolean);
+procedure TFormEditor.SetViseble(Status: Boolean);
 begin
   ToolButton4.Enabled := Status;
   ToolButton6.Enabled := Status;
@@ -3908,25 +3893,25 @@ end;
 
 procedure TFormEditor.ClearP;
 begin
-  ExpFieldPrt := nil;
-  ExpFieldVar := nil;
+  ExplorerProjectField := nil;
+  ExplorerVarField := nil;
 
-  NodeDirPtr := nil;
-  NodeDirSource := nil;
-  NodeDirInclude := nil;
+  NodeDirectoryProject := nil;
+  NodeDirectorySource := nil;
+  NodeDirectoryInclude := nil;
   NodeSource := nil;
   NodeInclude := nil;
 
-  varNodeDirInclude := nil;
-  varNodeDirImport := nil;
-  varNodeDirInterface := nil;
-  varNodeDirMacro := nil;
-  varNodeDirStruct := nil;
-  varNodeDirProc := nil;
-  varNodeDirLabel := nil;
-  varNodeDirConst := nil;
-  NodeDirVar := nil;
-  NodeDirType := nil;
+  varNodeDirectoryInclude := nil;
+  varNodeDirectoryImport := nil;
+  varNodeDirectoryInterface := nil;
+  varNodeDirectoryMacro := nil;
+  varNodeDirectoryStruct := nil;
+  varNodeDirectoryProc := nil;
+  varNodeDirectoryLabel := nil;
+  varNodeDirectoryConst := nil;
+  NodeDirectoryVar := nil;
+  NodeDirectoryType := nil;
   NodeTemp := nil;
 end;
 
