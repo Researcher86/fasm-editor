@@ -35,7 +35,7 @@ uses Main, TabSheet;
 procedure TFormGotoLine.Button1Click(Sender: TObject);
 var
   I: Integer;
-  Find: Boolean;
+  IsFound: Boolean;
   S, Mes: string;
 begin
   S := ComboBox1.Text;
@@ -44,22 +44,22 @@ begin
     if (ActivePage is TCustomTabSheet) then
       with (ActivePage as TCustomTabSheet) do
       begin
-        if (S = '') or (StrToInt(S) = 0) or (StrToInt(S) > FSynMemo.Lines.Count) then
+        if (S = '') or (StrToInt(S) = 0) or (StrToInt(S) > GetSynMemoLinesCount()) then
         begin
-          Mes := 'Номер строки должен быть между 1 и ' + IntToStr(FSynMemo.Lines.Count);
+          Mes := 'Номер строки должен быть между 1 и ' + IntToStr(GetSynMemoLinesCount());
           MessageBox(Self.Handle, PChar(Mes), 'Ошибка!', MB_ICONERROR or MB_OK);
           Exit;
         end;
 
-        Find := False;
+        IsFound := False;
         for I := 0 to ComboBox1.Items.Count - 1 do
-          if LowerCase(S) = LowerCase(ComboBox1.Items.Strings[I]) then Find := True;
+          if LowerCase(S) = LowerCase(ComboBox1.Items.Strings[I]) then IsFound := True;
 
-          if not Find then ComboBox1.Items.Insert(0, S);
+          if not IsFound then ComboBox1.Items.Insert(0, S);
 
           if ComboBox1.Items.Count > 20 then ComboBox1.Items.Delete(20);
 
-          FSynMemo.GotoLineAndCenter(StrToInt(S));
+          GotoLineAndCenter(StrToInt(S));
       end;
 
   Close;
@@ -76,8 +76,8 @@ begin
     if (ActivePage is TCustomTabSheet) then
       with (ActivePage as TCustomTabSheet) do
       begin
-        Label1.Caption := 'Номер строки (1 - ' + IntToStr(FSynMemo.Lines.Count) + '):';
-        ComboBox1.Text := IntToStr(FSynMemo.CaretY);
+        Label1.Caption := 'Номер строки (1 - ' + IntToStr(GetSynMemoLinesCount()) + '):';
+        ComboBox1.Text := IntToStr(GetSynMemoCaretY());
       end;
 
   ComboBox1.SetFocus;

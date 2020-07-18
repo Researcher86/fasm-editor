@@ -26,11 +26,14 @@ uses
   AsmSource,
   Math,
   SynExportRTF,
-  SynExportHTML;
+  SynExportHTML,
+  SynCompletionProposal;
 
 type
   TCustomTabSheet = class(TTabSheet)
   public
+
+  private
     FActiveCaretY: Integer;
     FFile: AnsiString;
     FSynMemo: TSynMemo;
@@ -41,7 +44,6 @@ type
     FButtonNext: TSpeedButton;
     FButtonFirst: TSpeedButton;
     FStatusBar: TStatusBar;
-  private
     FSelectWord: string;
     FCtrl: Boolean;
     FProjectPath: AnsiString;
@@ -77,11 +79,30 @@ type
     procedure GotoVar(BeginChar: Integer; EndChar: Integer);
     procedure ExportRtf(var Rtf: TSynExporterRTF);
     procedure ExportHtml(var Html: TSynExporterHTML);
+    function GetSynMemoLinesCount(): Integer;
+    procedure GotoLineAndCenter(ALine: Integer);
+    function GetSynMemoCaretY(): Integer;
+    function GetSynMemoCaretX(): Integer;
+    function GetWordAtMouse(): string;
+    function GetWordAtCursor(): string;
+    procedure SetBookMark(Mark: Integer);
+    procedure GoBookMark(Mark: Integer);
+    procedure ClearBookMark();
+    function GetSynMemoText(): string;
+    procedure SetCompletion(var SynCompletion, SynHint, SynCompletionJump: TSynCompletionProposal);
+    procedure SetActiveControl(MainForm: TForm);
+    procedure SynMemoRepaint();
+    procedure RepaintSelectWord();
+    procedure SynMemoRedo();
+    procedure SynMemoUndo();
+    function GetSynMemoCurrentLine(): string;
+    function GetSynMemoPreviousToken(): string;
+    function GetSynMemoCaretPosition(): Integer;
     procedure SelectErrorLine(LineNumber: Integer);
     property FilePath: AnsiString read FFile write SetFile;
     property SynMemoOptions: TSynMemo write SetSynMemoOptions;
     property Modifi: Boolean read GetModifi write SetModifi;
-    procedure SaveToFile;
+    procedure SaveToFile();
     procedure ProcFind(const S: string);
     procedure SearchReplaceText(const SearchText, ReplaceText: AnsiString);
     procedure SearchText(const SearchText: AnsiString);
@@ -166,6 +187,141 @@ begin
   end
   else
     Html.ExportAll(FSynMemo.Lines);
+end;
+
+function TCustomTabSheet.GetSynMemoLinesCount(): Integer;
+begin
+  Result := FSynMemo.Lines.Count;
+end;
+
+procedure TCustomTabSheet.GotoLineAndCenter(ALine: Integer);
+begin
+  FSynMemo.GotoLineAndCenter(ALine);
+end;
+
+function TCustomTabSheet.GetSynMemoCaretX(): Integer;
+begin
+  Result := FSynMemo.CaretX;
+end;
+
+function TCustomTabSheet.GetSynMemoCaretY(): Integer;
+begin
+  Result := FSynMemo.CaretY;
+end;
+
+function TCustomTabSheet.GetWordAtMouse(): string;
+begin
+  Result := FSynMemo.WordAtMouse;
+end;
+
+function TCustomTabSheet.GetWordAtCursor(): string;
+begin
+  Result := FSynMemo.WordAtCursor;
+end;
+
+procedure TCustomTabSheet.SetBookMark(Mark: Integer);
+var
+  I: Integer;
+  IsFound: Boolean;
+begin
+  IsFound := False;
+  for I := Pred(FSynMemo.Marks.Count) downto 0 do
+    if FSynMemo.Marks.Items[I].Line = FSynMemo.CaretY then
+    begin
+      if FSynMemo.Marks.Items[I].BookmarkNumber = Mark - 351 then
+        FSynMemo.CommandProcessor(Mark, #0, nil);
+
+      IsFound := True;
+      Break;
+    end;
+
+  if not IsFound then
+    FSynMemo.CommandProcessor(Mark, #0, nil);
+end;
+
+procedure TCustomTabSheet.GoBookMark(Mark: Integer);
+begin
+   FSynMemo.CommandProcessor(Mark, #0, nil);
+end;
+
+procedure TCustomTabSheet.ClearBookMark();
+var
+  I: Integer;
+begin
+  for I := Pred(FSynMemo.Marks.Count) downto 0 do
+    FSynMemo.ClearBookMark(FSynMemo.Marks[I].BookmarkNumber);
+end;
+
+function TCustomTabSheet.GetSynMemoText(): string;
+begin
+  Result := FSynMemo.Lines.Text;
+end;
+
+procedure TCustomTabSheet.SetCompletion(var SynCompletion, SynHint, SynCompletionJump: TSynCompletionProposal);
+begin
+  SynCompletion.Editor := FSynMemo;
+  SynHint.Editor := FSynMemo;
+  SynCompletionJump.Editor := FSynMemo;
+end;
+
+procedure TCustomTabSheet.SetActiveControl(MainForm: TForm);
+begin
+  MainForm.ActiveControl := CustomTabSheet.FSynMemo;
+end;
+
+procedure TCustomTabSheet.SynMemoRepaint();
+begin
+  FSynMemo.Repaint();
+end;
+
+procedure TCustomTabSheet.RepaintSelectWord();
+begin
+  TSynCustomAsmHighlighter(FSynMemo.Highlighter).SelectWord := SelectWord;
+  FSynMemo.Repaint();
+end;
+
+procedure TCustomTabSheet.SynMemoRedo();
+begin
+  FSynMemo.Redo();
+end;
+
+procedure TCustomTabSheet.SynMemoUndo();
+begin
+  FSynMemo.Undo();
+end;
+
+function TCustomTabSheet.GetSynMemoCurrentLine(): string;
+begin
+  Result := FSynMemo.Lines.Strings[FSynMemo.CaretY - 1];
+end;
+
+function TCustomTabSheet.GetSynMemoPreviousToken(): string;
+  function IsWordBreakChar(AChar: WideChar): Boolean;
+  begin
+    Result := (Pos(AChar, '()[],=\/:') > 0);
+  end;
+var
+  Line: string;
+  CharPosition: Integer;
+begin
+  Result := '';
+
+  Line := FSynMemo.Lines[FSynMemo.CaretXY.Line - 1];
+  CharPosition := FSynMemo.CaretXY.Char - 1;
+  if (CharPosition = 0) or (CharPosition > Length(Line)) or (Length(Line) = 0) then Exit();
+
+  if IsWordBreakChar(Line[CharPosition]) then Exit(); // Dec(X);
+
+  while (CharPosition > 0) and not(IsWordBreakChar(Line[CharPosition])) do
+  begin
+    Result := Line[CharPosition] + Result;
+    Dec(CharPosition);
+  end;
+end;
+
+function TCustomTabSheet.GetSynMemoCaretPosition(): Integer;
+begin
+  Result := FSynMemo.CaretXY.Char;
 end;
 
 procedure TCustomTabSheet.SelectErrorLine(LineNumber: Integer);
@@ -614,7 +770,7 @@ begin
     AddFindList(FSynMemo.SelText);
 end;
 
-procedure TCustomTabSheet.SaveToFile;
+procedure TCustomTabSheet.SaveToFile();
 begin
   try
     FSynMemo.ActiveLineColor := FormOptions.ColorBoxActiveLine.Selected;

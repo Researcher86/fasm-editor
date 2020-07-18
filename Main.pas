@@ -365,7 +365,7 @@ type
     procedure RunProg();
     procedure RunDbg();
     procedure CloseProgAndDbg();
-    procedure PageReset(const FindName: AnsiString; FindVar: Boolean = True);
+    procedure PageReset(const FindName: AnsiString; IsFindVar: Boolean = True);
     function FindNode(const NodeName: AnsiString; Src: Boolean): Boolean;
     procedure ModifiProjectFile(const FileName: AnsiString);
     procedure SaveProjectAs();
@@ -523,7 +523,7 @@ procedure TFormEditor.GotoVarAtMouse(var Msg: TMessage);
 begin
   if (PageControl1.ActivePage is TCustomTabSheet) then
   with (PageControl1.ActivePage as TCustomTabSheet) do
-    Self.GotoVar(FSynMemo.WordAtMouse);
+    Self.GotoVar(GetWordAtMouse());
 end;
 
 procedure TFormEditor.EditStatusChange(var Msg: TMessage);
@@ -531,7 +531,7 @@ begin
   SynHint.Deactivate();
 end;
 
-procedure TFormEditor.PageReset(const FindName: AnsiString; FindVar: Boolean = True);
+procedure TFormEditor.PageReset(const FindName: AnsiString; IsFindVar: Boolean = True);
 var
   I: Integer;
 begin
@@ -541,7 +541,7 @@ begin
     begin
       (PageControl1.Pages[I] as TCustomTabSheet).FilePath := FindName;
 
-      if FindVar then
+      if IsFindVar then
         PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
 
       Break;
@@ -760,34 +760,17 @@ begin
 end;
 
 procedure TFormEditor.SetBookMark(Mark: Integer);
-var
-  I: Integer;
-  IsFound: Boolean;
 begin
   if (PageControl1.ActivePage is TCustomTabSheet) then
     with (PageControl1.ActivePage as TCustomTabSheet) do
-    begin
-      IsFound := False;
-      for I := Pred(FSynMemo.Marks.Count) downto 0 do
-        if FSynMemo.Marks.Items[I].Line = FSynMemo.CaretY then
-        begin
-          if FSynMemo.Marks.Items[I].BookmarkNumber = Mark - 351 then
-            FSynMemo.CommandProcessor(Mark, #0, nil);
-
-          IsFound := True;
-          Break;
-        end;
-
-      if not IsFound then
-        FSynMemo.CommandProcessor(Mark, #0, nil);
-    end;
+      SetBookMark(Mark);
 end;
 
 procedure TFormEditor.GoBookMark(Mark: Integer);
 begin
   if (PageControl1.ActivePage is TCustomTabSheet) then
     with (PageControl1.ActivePage as TCustomTabSheet) do
-      FSynMemo.CommandProcessor(Mark, #0, nil);
+      GoBookMark(Mark);
 end;
 
 procedure TFormEditor.RunProg();
@@ -1348,7 +1331,7 @@ begin
   with (PageControl1.ActivePage as TCustomTabSheet) do
   begin
     AsmScanner := TAsmScanner.Create;
-    AsmScanner.Run(ProjectPath, FSynMemo.Lines.Text, FormOptions.EditINC.Text);
+    AsmScanner.Run(ProjectPath, GetSynMemoText(), FormOptions.EditINC.Text);
 
     for AsmInclude in AsmScanner.ListInclude.ToArray do
     begin
@@ -1562,12 +1545,11 @@ begin
   CustomTabSheet := TCustomTabSheet.Create(PageControl1, MyTabSheetImageList, FormEditor.ImBookMark, FormEditor.PMenuEdit, FileName);
   CustomTabSheet.Parent := PageControl1;
   PageControl1.ActivePage := CustomTabSheet;
-  SynCompletion.Editor := CustomTabSheet.FSynMemo;
-  SynHint.Editor := CustomTabSheet.FSynMemo;
-  SynCompletionJump.Editor := CustomTabSheet.FSynMemo;
-  ActiveControl := CustomTabSheet.FSynMemo;
-  TSynCustomAsmHighlighter(CustomTabSheet.FSynMemo.Highlighter).SelectWord := CustomTabSheet.SelectWord;
-  CustomTabSheet.FSynMemo.Repaint;
+
+  CustomTabSheet.SetCompletion(SynCompletion, SynHint, SynCompletionJump);
+  CustomTabSheet.SetActiveControl(Self);
+  CustomTabSheet.RepaintSelectWord();
+
   Result := CustomTabSheet;
 
   if LowerCase(ExtractFileExt(CustomTabSheet.FilePath)) = '.prt' then
@@ -1688,13 +1670,10 @@ begin
 end;
 
 procedure TFormEditor.N96Click(Sender: TObject);
-var
-  I: Integer;
 begin
   if (PageControl1.ActivePage is TCustomTabSheet) then
     with (PageControl1.ActivePage as TCustomTabSheet) do
-      for I := Pred(FSynMemo.Marks.Count) downto 0 do
-        FSynMemo.ClearBookMark(FSynMemo.Marks[I].BookmarkNumber);
+      ClearBookMark();
 end;
 
 procedure TFormEditor.N99Click(Sender: TObject);
@@ -1713,12 +1692,9 @@ begin
 
     if CustomTabSheet.Modifi then
     begin
-      ActiveControl := CustomTabSheet.FSynMemo;
-      SynCompletion.Editor := CustomTabSheet.FSynMemo;
-      SynHint.Editor := CustomTabSheet.FSynMemo;
-      SynCompletionJump.Editor := CustomTabSheet.FSynMemo;
-      TSynCustomAsmHighlighter(CustomTabSheet.FSynMemo.Highlighter).SelectWord := CustomTabSheet.SelectWord;
-      CustomTabSheet.FSynMemo.Repaint();
+      CustomTabSheet.SetCompletion(SynCompletion, SynHint, SynCompletionJump);
+      CustomTabSheet.SetActiveControl(Self);
+      CustomTabSheet.RepaintSelectWord();
 
       PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
 
@@ -1856,7 +1832,7 @@ procedure TFormEditor.ExplorerProjectNewText(Sender: TBaseVirtualTree;
   begin
     for I := 1 to PageControl1.PageCount - 1 do
     begin
-      if LowerCase(FindName) = LowerCase(TCustomTabSheet(PageControl1.Pages[I]).FFile) then
+      if LowerCase(FindName) = LowerCase(TCustomTabSheet(PageControl1.Pages[I]).FilePath) then
       begin
         PageControl1.Pages[I].Caption := ExtractFileName(NewName);
         (PageControl1.Pages[I] as TCustomTabSheet).FilePath := NewName;
@@ -1962,7 +1938,7 @@ begin
   else
   begin
     TCustomTabSheet(PageControl1.ActivePage).GotoVar(Data^.BeginChar, Data^.EndChar);
-    ActiveControl := TCustomTabSheet(PageControl1.ActivePage).FSynMemo;
+    TCustomTabSheet(PageControl1.ActivePage).SetActiveControl(Self);
   end;
 end;
 
@@ -2073,7 +2049,7 @@ begin
     if Tab = nil then Exit();
 
     Tab.SelectErrorLine(ErrorLine);
-    ActiveControl := Tab.FSynMemo;
+    Tab.SetActiveControl(Self);
   end
   else if Pos('error', OutputConsole.Text) <= 0 then
   begin
@@ -2102,7 +2078,7 @@ begin
   if FileExists(OutputFileName) then
     HexEditor.Open(OutputFileName);
 
-  (PageControl1.ActivePage as TCustomTabSheet).FSynMemo.Repaint();
+  (PageControl1.ActivePage as TCustomTabSheet).SynMemoRepaint();
   OutputConsole.Repaint();
 end;
 
@@ -2117,19 +2093,17 @@ begin
     if LowerCase(FindName) = LowerCase(TCustomTabSheet(PageControl1.Pages[I]).FilePath) then
     begin
       PageControl1.ActivePage := PageControl1.Pages[I];
-      ActiveControl := (PageControl1.ActivePage as TCustomTabSheet).FSynMemo;
       Result := True;
 
       CustomTabSheet := (PageControl1.ActivePage as TCustomTabSheet);
-      SynCompletion.Editor := CustomTabSheet.FSynMemo;
-      SynHint.Editor := CustomTabSheet.FSynMemo;
-      SynCompletionJump.Editor := CustomTabSheet.FSynMemo;
+      CustomTabSheet.SetCompletion(SynCompletion, SynHint, SynCompletionJump);
+      CustomTabSheet.SetActiveControl(Self);
 
       if IsFindVar then
         PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
 
-      TSynCustomAsmHighlighter(CustomTabSheet.FSynMemo.Highlighter).SelectWord := CustomTabSheet.SelectWord;
-      CustomTabSheet.FSynMemo.Repaint();
+      CustomTabSheet.RepaintSelectWord();
+
       Break;
     end;
   end;
@@ -2149,7 +2123,7 @@ begin
   begin
     ProcFind(S);
 
-    AsmScanner.Run(ProjectPath, FSynMemo.Lines.Text, FormOptions.EditINC.Text);
+    AsmScanner.Run(ProjectPath, GetSynMemoText(), FormOptions.EditINC.Text);
 
     for Include in AsmScanner.ListInclude.ToArray do
     begin
@@ -2445,7 +2419,7 @@ end;
 procedure TFormEditor.N17Click(Sender: TObject);
 begin
   if (PageControl1.ActivePage is TCustomTabSheet) then
-    (PageControl1.ActivePage as TCustomTabSheet).FSynMemo.Undo;
+    (PageControl1.ActivePage as TCustomTabSheet).SynMemoUndo();
 
   PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
 end;
@@ -2453,7 +2427,7 @@ end;
 procedure TFormEditor.N18Click(Sender: TObject);
 begin
   if (PageControl1.ActivePage is TCustomTabSheet) then
-    (PageControl1.ActivePage as TCustomTabSheet).FSynMemo.Redo;
+    (PageControl1.ActivePage as TCustomTabSheet).SynMemoRedo();
 
   PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
 end;
@@ -2622,14 +2596,9 @@ begin
     if (PageControl1.ActivePage is TCustomTabSheet) then
     begin
       CustomTabSheet := (PageControl1.ActivePage as TCustomTabSheet);
-
-      ActiveControl := CustomTabSheet.FSynMemo;
-      SynCompletion.Editor := CustomTabSheet.FSynMemo;
-      SynHint.Editor := CustomTabSheet.FSynMemo;
-      SynCompletionJump.Editor := CustomTabSheet.FSynMemo;
-
-      TSynCustomAsmHighlighter(CustomTabSheet.FSynMemo.Highlighter).SelectWord := CustomTabSheet.SelectWord;
-      CustomTabSheet.FSynMemo.Repaint();
+      CustomTabSheet.SetCompletion(SynCompletion, SynHint, SynCompletionJump);
+      CustomTabSheet.SetActiveControl(Self);
+      CustomTabSheet.RepaintSelectWord();
 
       PostMessage(GetMainFormHandle, WM_UPDATEEXPLORER_VAR, 0, 0);
     end
@@ -2817,7 +2786,7 @@ end;
 procedure TFormEditor.N54Click(Sender: TObject);
 begin
   if (PageControl1.ActivePage is TCustomTabSheet) then
-    Clipboard.AsText := (PageControl1.ActivePage as TCustomTabSheet).FFile;
+    Clipboard.AsText := (PageControl1.ActivePage as TCustomTabSheet).FilePath;
 end;
 
 procedure TFormEditor.N55Click(Sender: TObject);
@@ -2948,7 +2917,7 @@ procedure TFormEditor.N85Click(Sender: TObject);
   end;
 
 var
-  S, S2: string;
+  CurrentLine, FileName: string;
   I, J, K, B: Integer;
   C: AnsiChar;
 begin
@@ -2956,38 +2925,32 @@ begin
 
   with (PageControl1.ActivePage as TCustomTabSheet) do
   begin
-    S := FSynMemo.Lines.Strings[FSynMemo.CaretY - 1];
-    S := DeleteComment(S);
+    CurrentLine := GetSynMemoCurrentLine();
+    CurrentLine := DeleteComment(CurrentLine);
 
-    if (S = '') or (Pos('include', LowerCase(S)) <= 0) then Exit();
+    if (CurrentLine = '') or (Pos('include', LowerCase(CurrentLine)) <= 0) then Exit();
 
-    S := Copy(S, 8, Length(S));
-    S2 := '';
-    for I := 1 to Length(S) do
-      if not(S[I] in [#39, '"']) then
-        S2 := S2 + S[I];
+    CurrentLine := Copy(CurrentLine, 8, Length(CurrentLine));
+    FileName := '';
+    for I := 1 to Length(CurrentLine) do
+      if not(CurrentLine[I] in [#39, '"']) then
+        FileName := FileName + CurrentLine[I];
 
-    S2 := Trim(S2);
-    S := GetFullPath(ProjectPath + S2);
+    FileName := Trim(FileName);
 
-    if not FileExists(S) then
-    begin
-      S := GetFullPath(S2);
-      if not FileExists(S) then
-      begin
-        S := ExtractFilePath((PageControl1.ActivePage as TCustomTabSheet).FilePath);
-        S := GetFullPath(S + Trim(S2));
-        if not FileExists(S) then
-        begin
-          S := GetFullPath(Trim(FormOptions.EditINC.Text) + '\' + S2);
-          if not FileExists(S) then
-            Exit;
-        end;
-      end;
-    end;
+    if FileExists(GetFullPath(ProjectPath + FileName)) then
+      FileName := GetFullPath(ProjectPath + FileName)
+    else
+    if FileExists(GetFullPath(ExtractFilePath((PageControl1.ActivePage as TCustomTabSheet).FilePath + FileName))) then
+      FileName := GetFullPath(ExtractFilePath((PageControl1.ActivePage as TCustomTabSheet).FilePath + FileName))
+    else
+    if FileExists(GetFullPath(Trim(FormOptions.EditINC.Text) + '\' + FileName)) then
+      FileName := GetFullPath(Trim(FormOptions.EditINC.Text) + '\' + FileName)
+    else
+      Exit();
 
-    if not FindPage(S) then
-      CreatePage(S);
+    if not FindPage(FileName) then
+      CreatePage(FileName);
   end;
 end;
 
@@ -3002,7 +2965,7 @@ begin
       if VarName = '' then Exit();
 
       AsmScanner := TAsmScanner.Create();
-      AsmScanner.Run(ProjectPath, FSynMemo.Text, FormOptions.EditINC.Text);
+      AsmScanner.Run(ProjectPath, GetSynMemoText(), FormOptions.EditINC.Text);
 
       AsmIntruction := AsmScanner.FindInstructionByName(VarName);
       if AsmIntruction <> nil then
@@ -3023,7 +2986,7 @@ begin
       end;
 
       AsmScanner.Free();
-      ActiveControl := TCustomTabSheet(PageControl1.ActivePage).FSynMemo;
+      TCustomTabSheet(PageControl1.ActivePage).SetActiveControl(Self);
     end;
 end;
 
@@ -3031,7 +2994,7 @@ procedure TFormEditor.N86Click(Sender: TObject);
 begin
   if (PageControl1.ActivePage is TCustomTabSheet) then
     with (PageControl1.ActivePage as TCustomTabSheet) do
-      Self.GotoVar(FSynMemo.WordAtCursor);
+      Self.GotoVar(GetWordAtCursor());
 end;
 
 procedure TFormEditor.PageControl1Change(Sender: TObject);
@@ -3039,12 +3002,9 @@ begin
   if (PageControl1.ActivePage is TCustomTabSheet) then
   begin
     CustomTabSheet := (PageControl1.ActivePage as TCustomTabSheet);
-    ActiveControl := CustomTabSheet.FSynMemo;
-    SynCompletion.Editor := CustomTabSheet.FSynMemo;
-    SynHint.Editor := CustomTabSheet.FSynMemo;
-    SynCompletionJump.Editor := CustomTabSheet.FSynMemo;
-    TSynCustomAsmHighlighter(CustomTabSheet.FSynMemo.Highlighter).SelectWord := CustomTabSheet.SelectWord;
-    CustomTabSheet.FSynMemo.Repaint();
+    CustomTabSheet.SetCompletion(SynCompletion, SynHint, SynCompletionJump);
+    CustomTabSheet.SetActiveControl(Self);
+    CustomTabSheet.RepaintSelectWord();
 
     if not IsLoadProject then
     begin
@@ -3076,12 +3036,9 @@ begin
   if I > 0 then
   begin
     CustomTabSheet := (PageControl1.ActivePage as TCustomTabSheet);
-    ActiveControl := CustomTabSheet.FSynMemo;
-    SynCompletion.Editor := CustomTabSheet.FSynMemo;
-    SynHint.Editor := CustomTabSheet.FSynMemo;
-    SynCompletionJump.Editor := CustomTabSheet.FSynMemo;
-    TSynCustomAsmHighlighter(CustomTabSheet.FSynMemo.Highlighter).SelectWord := CustomTabSheet.SelectWord;
-    CustomTabSheet.FSynMemo.Repaint;
+    CustomTabSheet.SetCompletion(SynCompletion, SynHint, SynCompletionJump);
+    CustomTabSheet.SetActiveControl(Self);
+    CustomTabSheet.RepaintSelectWord();
 
     if not IsLoadProject then
     begin
@@ -3204,7 +3161,7 @@ begin
 
   with (PageControl1.ActivePage as TCustomTabSheet) do
   begin
-    Line := FSynMemo.Lines[FSynMemo.CaretXY.Line - 1];
+    Line := GetSynMemoCurrentLine();
 
     for I := Length(Line) downto 1 do
       if (Line[I] = '.') and (not(Line[I] in [#1 .. #32])) then
@@ -3259,33 +3216,6 @@ procedure TFormEditor.SynCompletionExecute(Kind: SynCompletionType;
     Result := '\color{clNavy}\style{-B}' + Name + '\color{clNone}\column{}\style{+B}';
   end;
 
-  function IsWordBreakChar(AChar: WideChar): Boolean;
-  begin
-    Result := (Pos(AChar, '()[],=\/:') > 0);
-  end;
-
-  function GetPreviousToken(AEditor: TCustomSynEdit): string;
-  var
-    Line: string;
-    CharPosition: Integer;
-  begin
-    Result := '';
-    if not Assigned(AEditor) then
-      Exit;
-
-    Line := AEditor.Lines[AEditor.CaretXY.Line - 1];
-    CharPosition := AEditor.CaretXY.Char - 1;
-    if (CharPosition = 0) or (CharPosition > Length(Line)) or (Length(Line) = 0) then Exit();
-
-    if IsWordBreakChar(Line[CharPosition]) then Exit(); // Dec(X);
-
-    while (CharPosition > 0) and not(IsWordBreakChar(Line[CharPosition])) do
-    begin
-      Result := Line[CharPosition] + Result;
-      Dec(CharPosition);
-    end;
-  end;
-
 label
   Next;
 
@@ -3312,7 +3242,7 @@ begin
   begin
     AsmScanner := TAsmScanner.Create;
 
-    IsDot := GetName(GetPreviousToken(FSynMemo), VarNameBeforeDot, VarNameAfterDot);
+    IsDot := GetName(GetSynMemoPreviousToken(), VarNameBeforeDot, VarNameAfterDot);
 
     with SynCompletion do
     begin
@@ -3322,7 +3252,7 @@ begin
 
       if VarNameAfterDot <> '' then
       begin
-        AsmScanner.Run(ProjectPath, FSynMemo.Lines.Text, FormOptions.EditINC.Text);
+        AsmScanner.Run(ProjectPath, GetSynMemoText(), FormOptions.EditINC.Text);
         AsmVar := AsmScanner.FindVarByName(VarNameAfterDot);
 
         if AsmVar <> nil then
@@ -3397,8 +3327,8 @@ begin
 
       if not IsDot then
       begin
-        Line := FSynMemo.Lines[FSynMemo.CaretXY.Line - 1];
-        Line := Copy(Line, 1, FSynMemo.CaretXY.Char - 1);
+        Line := GetSynMemoCurrentLine();
+        Line := Copy(Line, 1, GetSynMemoCaretPosition() - 1);
 
         for I := Length(Line) downto 1 do
         begin
@@ -3413,7 +3343,7 @@ begin
       if IsDot then
         CurrentInput := '.' + CurrentInput;
 
-      AsmScanner.Run(ProjectPath, FSynMemo.Lines.Text, FormOptions.EditINC.Text);
+      AsmScanner.Run(ProjectPath, GetSynMemoText(), FormOptions.EditINC.Text);
 
       for AsmImport in AsmScanner.ListImport.ToArray do
       begin
@@ -3498,7 +3428,7 @@ begin
   if (PageControl1.ActivePage is TCustomTabSheet) then
     with (PageControl1.ActivePage as TCustomTabSheet) do
     begin
-      Word := FSynMemo.WordAtCursor;
+      Word := GetWordAtCursor();
       if Word = '' then
       begin
         CanExecute := False;
@@ -3508,13 +3438,13 @@ begin
       SynHint.ClearList();
 
       AsmScanner := TAsmScanner.Create();
-      AsmScanner.Run(ProjectPath, FSynMemo.Text, FormOptions.EditINC.Text);
+      AsmScanner.Run(ProjectPath, GetSynMemoText(), FormOptions.EditINC.Text);
 
       AsmIntruction := AsmScanner.FindInstructionByName(Word);
       if AsmIntruction <> nil then
       begin
         if AsmIntruction.FInclude = nil then
-          FileName := ExtractFileName(FFile)
+          FileName := ExtractFileName(FilePath)
         else
           FileName := ExtractFileName(AsmIntruction.FInclude.FName);
 
@@ -3836,7 +3766,7 @@ begin
     begin
       IsFound := True;
       PageControl1.ActivePage := PageControl1.Pages[I];
-      ActiveControl := (PageControl1.ActivePage as TCustomTabSheet).FSynMemo;
+      (PageControl1.ActivePage as TCustomTabSheet).SetActiveControl(Self);
       Break;
     end;
   end;
