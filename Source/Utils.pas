@@ -21,7 +21,7 @@ type
   TCustomStringList = class(TStringList)
   public
     FFile: string;
-    procedure LoadFromFile(const FileName: string);
+    procedure LoadFromFile(const FileName: string); overload;
   end;
 
 function GetMainFormHandle: HWND;

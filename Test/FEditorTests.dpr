@@ -14,6 +14,8 @@ program FEditorTests;
 {$APPTYPE CONSOLE}
 {$ENDIF}
 
+{$R *.dres}
+
 uses
   DUnitTestRunner,
   TestAsmSource in 'TestAsmSource.pas',
@@ -22,7 +24,10 @@ uses
 
 {$R *.RES}
 
+var
+  Key: Char;
 begin
   DUnitTestRunner.RunRegisteredTests;
+  Readln(Key);
 end.
 

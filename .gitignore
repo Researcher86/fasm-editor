@@ -13,3 +13,6 @@ Options/
 *.groupproj
 *.dproj
 *.local
+Test/Resources/**/*.exe
+Test/*.stat
+Test/*.res
